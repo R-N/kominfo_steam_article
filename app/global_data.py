@@ -36,6 +36,8 @@ def init():
         else:
             return _write(x, *args, **kwargs)
     st.write = write_wrapper
+    
+    pd.options.plotting.backend = "plotly"
 
 
 def get_excel(df, sheet_name="Sheet 1"):

@@ -90,3 +90,17 @@ MySet._wrap_methods(['__ror__', 'difference_update', '__isub__',
     'symmetric_difference_update', '__or__', 'copy', '__rxor__',
     'intersection_update', '__xor__', '__ior__', '__sub__',
 ])
+
+def whitelist_plotly_vars(fig, whitelist):
+    fig.for_each_trace(
+        lambda trace: trace.update(visible="legendonly") 
+            if trace.name not in whitelist else ()
+    )
+    return fig
+
+def hide_plotly_vars(fig, blacklist):
+    fig.for_each_trace(
+        lambda trace: trace.update(visible="legendonly") 
+            if trace.name in blacklist else ()
+    )
+    return fig
