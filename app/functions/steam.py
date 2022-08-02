@@ -293,7 +293,8 @@ def game_bar_horizontal(container, df, x, y, y_list=True, aggfunc=lambda x: x.su
 
 def game_histogram(container, df, col, nbins=10, labels={}):
     fig = px.histogram(
-        x=df[col],
+        df,
+        x=col,
         labels={**LABELS, **labels},
         nbins=nbins
     )
