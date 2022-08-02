@@ -104,3 +104,37 @@ def hide_plotly_vars(fig, blacklist):
             if trace.name in blacklist else ()
     )
     return fig
+
+def remove_duplicate_by_index(df):
+    return df[~df.index.duplicated(keep='first')]
+
+class Batch:
+    def __init__(self, max_char=14000):
+        self.max_char = max_char
+        self.batch = []
+        self.len = 0
+
+    def add(self, text):
+        length = len(text)
+        if length + self.len > self.max_char:
+            return False
+        self.batch.append(text)
+        self.len += length
+        return True
+
+class Batches:
+    def __init__(self, max_char=14000):
+        self.max_char = max_char
+        self.batches = [Batch(max_char=max_char)]
+
+    @property
+    def last_batch(self):
+        return self.batches[-1]
+
+    def new_batch(self):
+        self.batches.append(Batch(max_char=self.max_char))
+
+    def add(self, text):
+        if not self.last_batch.add(text):
+            self.new_batch()
+            self.add(text)
