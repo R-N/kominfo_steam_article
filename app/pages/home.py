@@ -294,7 +294,7 @@ def app():
     st.markdown("## Bypass Blokir")
     col1, col2 = st.columns((1, 1))
     col2.image("assets/Lah green tunnel.png")
-    col2.caption("hehe")
+    #col2.caption("hehe")
     col1.markdown("Untungnya, akses ke Steam telah dibuka kembali per tanggal 2 Agustus 2022. Namun, jika lagi-lagi aturan PSE memblokir suatu layanan penting, kalian bisa gunakan salah satu aplikasi ini:")
     col1.markdown("- [Green Tunnel (Windows, Linux, MacOS)](https://github.com/SadeghHayeri/GreenTunnel)")
     col1.markdown("- [DPITunnel v2 (Linux & Android, perlu root)](https://github.com/zhenyolka/DPITunnel-android)")
