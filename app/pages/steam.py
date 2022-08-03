@@ -76,7 +76,32 @@ def section_game_estimated_revenue(df_paid, key="game"):
 
     game_scatter(st, df, x, y, zs)
     #df = df[[col]]
-    game_bar_horizontal(st, df, col, "genres")
+    col1, col2 = st.columns(2)
+    x = selectbox_2(col1, "x", {
+        x: LABELS[x] for x in [
+            "price_initial",
+            "total_reviews",
+            "total_positive",
+            "estimated_revenue",
+            "estimated_revenue_positive",
+            "count"
+        ] if x in df.columns
+    }, default=col_review)
+    y = selectbox_2(col2, "y", {
+        x: LABELS[x] for x in [
+            "genres",
+            "categories",
+            "platforms",
+            "supported_languages",
+            "supported_languages_voice"
+        ] if x in df.columns
+    }, default="genres")
+    agg_cb = st.checkbox("Agg", value=True)
+    con = st.container()
+    game_bar_horizontal(
+        con, df, x, y, 
+        agg=agg_cb
+    )
 
 def section_grouped_estimated_revenue(df_paid):
 
@@ -104,7 +129,7 @@ def app():
     df_paid, df_free, df_unavailable, df_unreleased = split_by_availability(df)
 
     # Game availability pie
-    with st.expander("Ketersediaan Game"):
+    with st.expander("Ketersediaan Game", expanded=True):
         section_game_availability(df, df_paid, df_free, df_unavailable, df_unreleased, steam_appids)
 
     with st.expander("Estimasi Pendapatan", expanded=True):

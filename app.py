@@ -3,7 +3,7 @@ import streamlit as st
 from app.global_data import init
 from app.pages import home, steam, twitter, gtrends
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
 
 page_dict = {}
 page_names = []

@@ -3,6 +3,9 @@ import pandas as pd
 from ..global_data import Constants
 import requests
 
+DEFAULT_NEUTRAL_BINS = (-0.1, 0.1)
+DEFAULT_MIN_SUBJECTIVITY = 0.5
+
 API = "recent"
 QUERIES=[
     "kominfo pse",
@@ -79,7 +82,7 @@ def build_file_name(api, query, date, format="csv"):
     )
     return file_name
 
-def group_sentiment(df, bins=(-1.0/3.0, 1.0/3.0)):
+def group_sentiment(df, bins=DEFAULT_NEUTRAL_BINS):
     df["sentiment_label"] = pd.cut(
         x=df['polarity'],
         bins=[-1.0, *bins, 1.0],
@@ -95,7 +98,7 @@ def load_df(excel_path):
         df = pd.read_excel(excel_path, sheet_name="data")
     return df
 
-def prepare_df(df, sentiment_bins=(-1.0/3.0, 1.0/3.0)):
+def prepare_df(df, sentiment_bins=DEFAULT_NEUTRAL_BINS):
     df = df.copy()
     if "Unnamed: 0" in df.columns:
         df = df.drop(["Unnamed: 0"], axis=1)
@@ -111,7 +114,7 @@ def prepare_df(df, sentiment_bins=(-1.0/3.0, 1.0/3.0)):
     df = group_sentiment(df, bins=sentiment_bins)
     return df
 
-def load_all(sentiment_bins=(-1.0/3.0, 1.0/3.0)):
+def load_all(sentiment_bins=DEFAULT_NEUTRAL_BINS):
     all_data = {}
     for query in QUERIES:
         for date in DATES:
@@ -158,7 +161,7 @@ SENTIMENT_COLS = [
     *list(SENTIMENT_LABELS.keys()),
     *["{0}_volume".format(k) for k in SENTIMENT_LABELS.keys()]
 ]
-def aggregate_data(all_data, min_subjectivity=0.5):
+def aggregate_data(all_data, min_subjectivity=DEFAULT_MIN_SUBJECTIVITY):
     aggregate = []
     for query in QUERIES:
         for date in DATES:

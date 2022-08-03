@@ -31,7 +31,10 @@ LABELS = {
     "developers": "Developer",
     "publishers": "Publisher",
     "genres": "Genre",
-    "categories": "Kategori"
+    "categories": "Kategori",
+    "platforms": "Platform",
+    "supported_languages": "Bahasa yang didukung",
+    "supported_languages_voice": "Bahasa yang didukung penuh hingga suara"
 }
 
 
@@ -75,18 +78,20 @@ def split_by_availability(df):
 
 
 def limit_df(container, df_paid, col, key="default"):
-    min_value=df_paid[col].min()
-    max_value=df_paid[col].max()
+    min_value=float(df_paid[col].min())
+    max_value=float(df_paid[col].max())
+    median = df_paid[col].median()
     
     limit_labels = {
         None: "Tanpa batas",
-        50 * 10**6: "< 50 juta",
-        20 * 10**6: "< 20 juta",
-        5 * 10**6: "< 5 juta",
-        2 * 10**6: "< 2 juta",
-        1 * 10**6: "< 1 juta",
-        500 * 10**3: "< 500 ribu",
-        200 * 10**3: "< 200 ribu",
+        50.0 * 10**6: "< 50 juta",
+        20.0 * 10**6: "< 20 juta",
+        10.0 * 10**6: "< 10 juta",
+        5.0 * 10**6: "< 5 juta",
+        2.0 * 10**6: "< 2 juta",
+        1.0 * 10**6: "< 1 juta",
+        500.0 * 10**3: "< 500 ribu",
+        200.0 * 10**3: "< 200 ribu",
         "custom": "Custom"
     }
     limit_labels = {
@@ -104,14 +109,17 @@ def limit_df(container, df_paid, col, key="default"):
         format_func=lambda x: limit_labels[x],
         key=key
     )
-
+    step = 1.0
+    while step < median:
+        step *= 10
+    step = step//10
     if limit == "custom":
         limit = col2.number_input(
             "Batas",
             min_value=min_value,
             max_value=max_value,
-            value=200.0 * 10**3,
-            step=50.0 * 10**3
+            value=median,
+            step=step
         )
 
     df = df_paid[df_paid[col] < limit] if limit else df_paid
@@ -172,13 +180,14 @@ def summarize_review(df):
     return df
 
 def split_languages(df):
-    df["supported_languages_voice"] = df.apply(
-        lambda x: [y[:-1] for y in x["supported_languages"] if y.endswith("*")],
-        axis=1
+    df["supported_languages_voice"] = df["supported_languages"].apply(
+        lambda x: ([y[:-1] for y in x if y.endswith("*")])
     )
-    df["supported_languages"] = df.apply(
-        lambda x: [y[:-1] if y.endswith("*") else y for y in x["supported_languages"]],
-        axis=1
+    df["supported_languages_voice"] = df["supported_languages_voice"].apply(
+        lambda x: (x if x else ["No Voice"])
+    )
+    df["supported_languages"] = df["supported_languages"].apply(
+        lambda x: ([y[:-1] if y.endswith("*") else y for y in x])
     )
     return df
 

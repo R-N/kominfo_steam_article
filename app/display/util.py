@@ -5,8 +5,10 @@ from ..functions.util import sorted_keys
 
 def selectbox_2(container, label, options, key="default", default=None):
     option_keys = sorted_keys(options)
-    index=option_keys.index(default)
-    index = index if index >= 0 else 0
+    try:
+        index = option_keys.index(default)
+    except ValueError:
+        index = 0
     return container.selectbox(
         label,
         option_keys, 

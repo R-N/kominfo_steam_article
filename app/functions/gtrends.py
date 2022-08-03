@@ -5,6 +5,12 @@ import plotly.express as px
 from numerize import numerize
 from ..functions.util import sorted_keys
 
+LABELS = {
+    "indo_daily": "Tren harian indonesia",
+    "indo_hourly": "Tren per-jam indonesia",
+    "world_daily": "Tren harian dunia",
+    "world_hourly": "Tren per-jam dunia",
+}
 EXCLUDE_COLS = [
     "kominfo judi",
     "kominfo bom",

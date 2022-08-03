@@ -10,7 +10,15 @@ import functools
 from ..functions.steam import LABELS
 
 def show_metrics(container, series, metric_type=1):
+    series = series.astype(float)
     if metric_type==1:
+        col1, col2, col3, col4, col5 = container.columns(5)
+        col1.metric("Median", numerize.numerize(series.median()))
+        col2.metric("Mean", numerize.numerize(series.mean()))
+        col3.metric("Max", numerize.numerize(series.max()))
+        col4.metric("Sum", numerize.numerize(series.sum()))
+        col5.metric("Count", numerize.numerize(float(series.count())))
+    if metric_type==2:
         col1, col2, col3 = container.columns(3)
         col1.metric("Median", numerize.numerize(series.median()))
         col2.metric("Mean", numerize.numerize(series.mean()))
@@ -89,24 +97,35 @@ def game_pie(container, df, col, threshold=0.01, others_name="Others", labels={}
     )
     container.plotly_chart(fig, use_container_width=True)
 
-def game_bar_horizontal(container, df, x, y, y_list=True, aggfunc=lambda x: x.sum(), labels={}):
-    
+def game_bar_horizontal(container, df, x, y, y_list=True, hover_data=[], aggfunc=lambda x: x.sum(), labels={}, agg=False):
+    y_list = y_list and y is not None
     if y_list:
-        df = join_tag(
-            df,
-            y
-        )
-        sorting = groupby_tag(df[[x, y]], y)
+        if agg:
+            df = aggfunc(groupby_tag(
+                df,
+                y
+            )).sort_values(x, ascending=True)
+            sorting = df
+            y = None
+            #sorting = aggfunc(groupby_tag(df[[x, y]], y))
+        else:
+            df = join_tag(
+                df,
+                y
+            ).sort_values(x, ascending=True)
+            sorting = aggfunc(groupby_tag(df[[x, y]], y))
+    elif y is not None:
+        sorting = aggfunc(df.groupby(y))
     else:
-        sorting = df.groupby(y)
-    sorting = aggfunc(sorting).sort_values(x, ascending=False)
+        sorting = df
+    sorting = sorting.sort_values(x, ascending=True)
     fig = px.bar(
         df, 
         x=x, 
         y=y, 
         #color=df2.index, 
         orientation='h',
-        hover_data=[x],
+        hover_data=[x] if not agg else [x, *hover_data],
         category_orders=sorting.index.to_list(),
         labels={**LABELS, **labels}
     )
