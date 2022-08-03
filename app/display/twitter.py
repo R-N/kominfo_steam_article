@@ -30,7 +30,7 @@ def tweet_polarity_line_2(container, df, whitelist=DEFAULT_QUERIES, labels={}):
 def display_tweet(container, tweet, title=None):
     con = container.container()
     if title:
-        con.markdown("### Tweet #{0}".format(title))
+        con.markdown("### {0}".format(title))
     con.write(get_tweet(tweet["id"], tweet["text"]), unsafe_allow_html=True)
     col1, col2, col3, col4, col5, col6 = con.columns(6)
     col1.metric("Sentimen", tweet["sentiment_label"])
@@ -41,18 +41,29 @@ def display_tweet(container, tweet, title=None):
     col6.metric("Quote", numerize.numerize(float(tweet["quote_count"])))
 
 def tweet_slides(con, tweets, key="default"):
-    index = 0
     max_index = len(tweets)-1
+    index = con.number_input(
+        "Tweet #",
+        min_value=0,
+        max_value=max_index,
+        value=0,
+        step=1
+    )
+    index = int(index)
+    """
     var = "tweet_slides_{0}".format(key)
     params = st.experimental_get_query_params()
-    if var in params:
-        index = int(params[var][0])
+    if var in st.session_state:
+        index = int(st.session_state[var])
     else:
-        con.experimental_set_query_params(**{var: index})
+        st.session_state[var] = index
+    """
     tweet = tweets[index]
-    display_tweet(con, tweet, index+1)
+    display_tweet(con, tweet, "Top Tweet #{0}".format(index+1))
+    """
     col1, col2, col3 = con.columns((1, 10, 1))
     if col1.button("<"):
-        st.experimental_set_query_params(**{var: max(0, min(max_index, index-1))})
+        st.session_state[var] = max(0, min(max_index, index-1))
     if col3.button(">"):
-        st.experimental_set_query_params(**{var: max(0, min(max_index, index+1))})
+        st.session_state[var] = max(0, min(max_index, index+1))
+    """

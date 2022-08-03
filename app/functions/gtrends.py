@@ -33,6 +33,7 @@ DEFAULT_COLS_2 = [
     "dpi tunnel"
 ]
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def load_df(sheet, excel_path=Constants.gtrends_path, exclude_cols=EXCLUDE_COLS):
     df = pd.read_excel(excel_path, sheet_name=sheet)
     df = df.set_index("Day" if "Day" in df.columns else "Time")

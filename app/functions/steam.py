@@ -49,6 +49,7 @@ def unpack_csv(df, cols):
         df[col] = df[col].str.split(',')
     return df
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def split_by_availability(df):
     df_released = df[df["coming_soon"]==False]
     df_unreleased = df[df["coming_soon"]==True]
@@ -76,7 +77,7 @@ def split_by_availability(df):
 
     return df_paid, df_free, df_unavailable, df_unreleased
 
-
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def limit_df(container, df_paid, col, key="default"):
     min_value=float(df_paid[col].min())
     max_value=float(df_paid[col].max())
@@ -127,7 +128,7 @@ def limit_df(container, df_paid, col, key="default"):
     return df, limit
 
 
-
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def groupby_tag_2(df, labels, aggfunc=lambda x: x.sum()):
     grouping = st.selectbox(
         "Pengelompokan",
@@ -147,7 +148,7 @@ def groupby_tag_2(df, labels, aggfunc=lambda x: x.sum()):
     else:
         df = df.set_index("name")
     return df, grouping
-
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def rebuild_review(df):
     df["positive_rate"] = df["total_positive"] / df["total_reviews"] * 100
     df["review_score_desc"] = df.apply(lambda x: 
@@ -166,6 +167,7 @@ def rebuild_review(df):
     summarize_review(df)
     return df
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def summarize_review(df):
     df["review_summary"] = df.apply(
         lambda x: "{0} ({1:.2f}%)".format(x["review_score_desc"], x["positive_rate"]),
@@ -179,6 +181,7 @@ def summarize_review(df):
     """
     return df
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def split_languages(df):
     df["supported_languages_voice"] = df["supported_languages"].apply(
         lambda x: ([y[:-1] for y in x if y.endswith("*")])
@@ -191,6 +194,7 @@ def split_languages(df):
     )
     return df
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def init_df(df):
     df = unpack_csv(df, CSV_COLS)
     df = split_languages(df)

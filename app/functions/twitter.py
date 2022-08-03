@@ -97,7 +97,7 @@ def group_sentiment(df, bins=DEFAULT_NEUTRAL_BINS):
     )
     return df
 
-@st.cache()
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def load_df(excel_path):
     if excel_path.endswith("csv"):
         df = pd.read_csv(excel_path)
@@ -105,6 +105,7 @@ def load_df(excel_path):
         df = pd.read_excel(excel_path, sheet_name="data")
     return df
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def prepare_df(df, sentiment_bins=DEFAULT_NEUTRAL_BINS):
     df = df.copy()
     if "Unnamed: 0" in df.columns:
@@ -121,6 +122,8 @@ def prepare_df(df, sentiment_bins=DEFAULT_NEUTRAL_BINS):
     df = group_sentiment(df, bins=sentiment_bins)
     return df
 
+
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def load_all(sentiment_bins=DEFAULT_NEUTRAL_BINS):
     all_data = {}
     for query in QUERIES:
@@ -136,6 +139,7 @@ def load_all(sentiment_bins=DEFAULT_NEUTRAL_BINS):
 
     return all_data
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def aggregate_sentiment(df):
     count_sentiment = len(df)
     volume_sentiment = df["volume"].sum()
@@ -168,6 +172,7 @@ SENTIMENT_COLS = [
     *list(SENTIMENT_LABELS.keys()),
     *["{0}_volume".format(k) for k in SENTIMENT_LABELS.keys()]
 ]
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def aggregate_data(all_data, min_subjectivity=DEFAULT_MIN_SUBJECTIVITY):
     aggregate = []
     for query in QUERIES:
@@ -224,6 +229,7 @@ def aggregate_data(all_data, min_subjectivity=DEFAULT_MIN_SUBJECTIVITY):
 def filter_query(df, query):
     return df[df["query"]==query].set_index("date")
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def merge_data(all_data, queries, dates):
     merged = [all_data[(query, date)] for query in queries for date in dates]
     merged = pd.concat(merged)

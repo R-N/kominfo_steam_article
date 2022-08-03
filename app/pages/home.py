@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from ..functions.twitter import POLARITY_LABEL_VOLUME_COLS as TWITTER_POLARITY_LABEL_VOLUME_COLS, QUERIES as TWITTER_QUERIES, EXCLUDE_QUERIES as TWITTER_EXCLUDE_QUERIES, POLARITY_LABEL_COLS as TWITTER_POLARITY_LABEL_COLS, LABELS as TWITTER_LABELS, INCLUDE_QUERIES as TWITTER_INCLUDE_QUERIES, DATES as TWITTER_DATES
 from ..functions.twitter import load_all as twitter_load_all, aggregate_data as twitter_aggregate_data, filter_query as twitter_filter_query, merge_data as twitter_merge_data
-from ..display.twitter import tweet_volume_bar_stack, tweet_slides
+from ..display.twitter import tweet_volume_bar_stack, tweet_slides, display_tweet
 from ..display.steam import game_bar_horizontal, game_scatter, show_metrics as steam_show_metrics, game_histogram
 from ..global_data import Constants
 from ..functions.steam import LABELS as STEAM_LABELS
@@ -13,7 +13,9 @@ from ..display.util import selectbox_2, multiselect_2
 from ..functions.steam import split_by_availability as steam_split_by_availabiltiy, init_df as steam_init_df, groupby_tag_2 as steam_groupby_tag_2, limit_df as steam_limit_df
 import json
 
+container_type = type(st.container)
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
 def tweet_section(container, all_data, sentiment="all", queries=TWITTER_INCLUDE_QUERIES, dates=TWITTER_DATES, sorting="engagement", limit=10):
     con1 = container.container()
     con2 = container.container()
@@ -47,9 +49,9 @@ def tweet_section(container, all_data, sentiment="all", queries=TWITTER_INCLUDE_
     merged = twitter_merge_data(all_data, queries, dates)
     if sentiment != "all":
         merged = merged[merged["sentiment_label"]==TWITTER_LABELS[sentiment]]
-    col1, col2 = con1.columns(2)
+    col1, col2, col3 = con1.columns(3)
     sorting = selectbox_2(
-        col1,
+        col2,
         "Sort by",
         {
             k: TWITTER_LABELS[k]
@@ -63,7 +65,7 @@ def tweet_section(container, all_data, sentiment="all", queries=TWITTER_INCLUDE_
         },
         default=sorting
     )
-    limit = col2.number_input(
+    limit = col3.number_input(
         "Limit",
         min_value=0,
         max_value=100,
@@ -74,14 +76,28 @@ def tweet_section(container, all_data, sentiment="all", queries=TWITTER_INCLUDE_
     #st.dataframe(merged)
     tweets = merged.to_dict('records')
     #st.write(tweets)
-    tweet_slides(con2, tweets, key="twitter")
+    max_index = len(tweets)-1
+    index = col1.number_input(
+        "Tweet #",
+        min_value=0,
+        max_value=max_index,
+        value=0,
+        step=1
+    )
+    index = int(index)
+    #tweet_slides(con2, tweets, key="twitter")
+    
+    tweet = tweets[index]
+    display_tweet(con2, tweet, "Top Tweet #{0}".format(index+1))
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
 def gtrends_section(container, sheet="indo_hourly", labels=GTRENDS_LABELS, whitelist=GTRENDS_DEFAULT_COLS_1, key="trends1"):
     if container.checkbox("Opsi", key=key):
         sheet = selectbox_2(container, "Google Trends", labels, default="indo_hourly")
     df = gtrends_load_df(sheet)
     trend_line(container, df, whitelist=whitelist)
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
 def tweet_sentiment_section(container, aggregate, query="kominfo", labels=TWITTER_POLARITY_LABEL_VOLUME_COLS, key="sentiment"):
     
     if container.checkbox("Opsi", key=key):
@@ -102,6 +118,7 @@ def tweet_sentiment_section(container, aggregate, query="kominfo", labels=TWITTE
     con = container.container()
     tweet_volume_bar_stack(con, df_q, labels)
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
 def tweet_volume_section(container, aggregate, query="kominfo", count="count_rt", key="volume"):
     if container.checkbox("Opsi", key=key):
         query = selectbox_2(
@@ -120,6 +137,7 @@ def tweet_volume_section(container, aggregate, query="kominfo", count="count_rt"
     con = container.container()
     tweet_volume_bar_stack(con, df_q, count)
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
 def steam_histogram_section(container, df, key="default"):
     col = selectbox_2(container, "x", {
         x: STEAM_LABELS[x] for x in [
@@ -134,6 +152,7 @@ def steam_histogram_section(container, df, key="default"):
     steam_show_metrics(container, df[col], 1)
     game_histogram(container, df, col)
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
 def steam_scatter_section(container, df, key="default"):
     col1, col2 = container.columns(2)
     x = selectbox_2(col1, "x", {
@@ -173,6 +192,7 @@ def steam_scatter_section(container, df, key="default"):
 
     game_scatter(container, df, x, y, zs)
 
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
 def steam_bar_horizontal_section(container, df, key="default"):
     col1, col2 = container.columns(2)
     x = selectbox_2(col1, "x", {
@@ -201,15 +221,26 @@ def steam_bar_horizontal_section(container, df, key="default"):
         agg=agg_cb
     )
 
-def app():
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
+def load_data_twitter():
     all_data = twitter_load_all()
     aggregate = twitter_aggregate_data(all_data)
+
+    return all_data, aggregate
     
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
+def load_data_steam():
     with open(Constants.steam_appid_path) as f:
         steam_appids = json.load(f)
     df = pd.read_excel(Constants.steam_path, sheet_name="data")
     df["count"] = 1
     steam_init_df(df)
+
+    return df
+
+def app():
+    all_data, aggregate = load_data_twitter()
+    df = load_data_steam()
     df_paid, df_free, df_unavailable, df_unreleased = steam_split_by_availabiltiy(df)
 
     st.markdown("# Steam, Pintu Ekspor Terbesar Industri Game Indonesia yang Ditutup oleh Kominfo")

@@ -102,9 +102,9 @@ def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES,
     merged = merge_data(all_data, queries, dates)
     if sentiment != "all":
         merged = merged[merged["sentiment_label"]==LABELS[sentiment]]
-    col1, col2 = con1.columns(2)
+    col1, col2, col3 = con1.columns(3)
     sorting = selectbox_2(
-        col1,
+        col2,
         "Sort by",
         {
             k: LABELS[k]
@@ -118,7 +118,7 @@ def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES,
         },
         default=sorting
     )
-    limit = col2.number_input(
+    limit = col3.number_input(
         "Limit",
         min_value=0,
         max_value=100,
@@ -129,7 +129,20 @@ def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES,
     #st.dataframe(merged)
     tweets = merged.to_dict('records')
     #st.write(tweets)
-    tweet_slides(con2, tweets, key="twitter")
+    
+    max_index = len(tweets)-1
+    index = col1.number_input(
+        "Tweet #",
+        min_value=0,
+        max_value=max_index,
+        value=0,
+        step=1
+    )
+    index = int(index)
+    #tweet_slides(con2, tweets, key="twitter")
+    
+    tweet = tweets[index]
+    display_tweet(con2, tweet, "Top Tweet #{0}".format(index+1))
     
 
 def app():
