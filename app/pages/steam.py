@@ -3,10 +3,11 @@ import pandas as pd
 from ..global_data import Constants
 import plotly.express as px
 from numerize import numerize
-from ..functions.util import join_tag, groupby_tag, selectbox_2, multiselect_2, MySet
+from ..functions.util import join_tag, groupby_tag, MySet
+from ..display.util import selectbox_2, multiselect_2
 from ..functions.steam import CSV_COLS, LABELS
-from ..functions.steam import split_by_availability, limit_df, show_metrics, groupby_tag_2, init_df
-from ..functions.steam import game_availabiltiy_pie, game_histogram, game_bar_horizontal, game_scatter, collection_union_pie_2
+from ..functions.steam import split_by_availability, limit_df, groupby_tag_2, init_df
+from ..display.steam import game_availabiltiy_pie, show_metrics, game_histogram, game_bar_horizontal, game_scatter, collection_union_pie_2
 import json
 import functools
 
