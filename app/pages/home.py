@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-from ..functions.twitter import POLARITY_LABEL_VOLUME_COLS as TWITTER_POLARITY_LABEL_VOLUME_COLS, QUERIES as TWITTER_QUERIES, EXCLUDE_QUERIES as TWITTER_EXCLUDE_QUERIES, POLARITY_LABEL_COLS as TWITTER_POLARITY_LABEL_COLS
-from ..functions.twitter import load_all as twitter_load_all, aggregate_data as twitter_aggregate_data, filter_query as twitter_filter_query
-from ..display.twitter import tweet_volume_bar_stack
+from ..functions.twitter import POLARITY_LABEL_VOLUME_COLS as TWITTER_POLARITY_LABEL_VOLUME_COLS, QUERIES as TWITTER_QUERIES, EXCLUDE_QUERIES as TWITTER_EXCLUDE_QUERIES, POLARITY_LABEL_COLS as TWITTER_POLARITY_LABEL_COLS, LABELS as TWITTER_LABELS, INCLUDE_QUERIES as TWITTER_INCLUDE_QUERIES, DATES as TWITTER_DATES
+from ..functions.twitter import load_all as twitter_load_all, aggregate_data as twitter_aggregate_data, filter_query as twitter_filter_query, merge_data as twitter_merge_data
+from ..display.twitter import tweet_volume_bar_stack, tweet_slides
 from ..display.steam import game_bar_horizontal, game_scatter, show_metrics as steam_show_metrics, game_histogram
 from ..global_data import Constants
 from ..functions.steam import LABELS as STEAM_LABELS
@@ -12,6 +12,69 @@ from ..display.gtrends import trend_line
 from ..display.util import selectbox_2, multiselect_2
 from ..functions.steam import split_by_availability as steam_split_by_availabiltiy, init_df as steam_init_df, groupby_tag_2 as steam_groupby_tag_2, limit_df as steam_limit_df
 import json
+
+
+def tweet_section(container, all_data, sentiment="all", queries=TWITTER_INCLUDE_QUERIES, dates=TWITTER_DATES, sorting="engagement", limit=10):
+    con1 = container.container()
+    con2 = container.container()
+    if container.checkbox("Filter"):
+        sentiment = selectbox_2(
+        container,
+        "Sentimen",
+        {
+            k: TWITTER_LABELS[k]
+            for k in [
+                "positive",
+                "neutral",
+                "negative",
+                "all"
+            ]
+        },
+        default=sentiment
+    )
+        queries = multiselect_2(
+            container, 
+            "Query", 
+            {k:k for k in queries}, 
+            default=queries
+        )
+        dates = multiselect_2(
+            container, 
+            "Tanggal", 
+            {k:k for k in dates}, 
+            default=dates
+        )
+    merged = twitter_merge_data(all_data, queries, dates)
+    if sentiment != "all":
+        merged = merged[merged["sentiment_label"]==TWITTER_LABELS[sentiment]]
+    col1, col2 = con1.columns(2)
+    sorting = selectbox_2(
+        col1,
+        "Sort by",
+        {
+            k: TWITTER_LABELS[k]
+            for k in [
+                "like_count",
+                "reply_count",
+                "retweet_count",
+                "quote_count",
+                "engagement"
+            ]
+        },
+        default=sorting
+    )
+    limit = col2.number_input(
+        "Limit",
+        min_value=0,
+        max_value=100,
+        value=limit,
+        step=1
+    )
+    merged = merged.sort_values(sorting, ascending=False).iloc[:int(limit)].reset_index()
+    #st.dataframe(merged)
+    tweets = merged.to_dict('records')
+    #st.write(tweets)
+    tweet_slides(con2, tweets, key="twitter")
 
 def gtrends_section(container, sheet="indo_hourly", labels=GTRENDS_LABELS, whitelist=GTRENDS_DEFAULT_COLS_1, key="trends1"):
     if container.checkbox("Opsi", key=key):
@@ -168,6 +231,8 @@ def app():
     tweet_sentiment_section(tab_sentiment, aggregate)
     tweet_volume_section(tab_volume, aggregate)
     gtrends_section(tab_gtrends)
+
+    tweet_section(st, all_data)
 
     st.markdown("## Steam dan Game Indonesia")
 

@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from ..global_data import Constants
-from ..functions.twitter import DEFAULT_MIN_SUBJECTIVITY, POLARITY_LABEL_COLS, POLARITY_LABEL_VOLUME_COLS, QUERIES, DATES, EXCLUDE_QUERIES, DEFAULT_NEUTRAL_BINS, DEFAULT_MIN_SUBJECTIVITY
-from ..functions.twitter import load_all, aggregate_data, filter_query, get_tweet
+from ..functions.twitter import DEFAULT_MIN_SUBJECTIVITY, POLARITY_LABEL_COLS, POLARITY_LABEL_VOLUME_COLS, QUERIES, DATES, EXCLUDE_QUERIES, DEFAULT_NEUTRAL_BINS, DEFAULT_MIN_SUBJECTIVITY, LABELS, INCLUDE_QUERIES
+from ..functions.twitter import load_all, aggregate_data, filter_query, get_tweet, merge_data
 from ..display.twitter import tweet_volume_bar_stack, tweet_polarity_line, tweet_polarity_line_2, display_tweet, tweet_slides
 from ..display.util import selectbox_2, multiselect_2
 from numerize import numerize
@@ -69,41 +69,67 @@ def aggregate_section(aggregate):
     )
     tweet_polarity_line_2(st, df_q)
 
-def tweet_section(all_data):
-    col1, col2 = st.columns(2)
-    sorting = selectbox_2(
-        col1,
-        "Sort by",
+def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES, dates=DATES, sorting="engagement", limit=10):
+    con1 = container.container()
+    con2 = container.container()
+    if container.checkbox("Filter"):
+        sentiment = selectbox_2(
+        container,
+        "Sentimen",
         {
-            "Sorttt": "sotrtrt"
+            k: LABELS[k]
+            for k in [
+                "positive",
+                "neutral",
+                "negative",
+                "all"
+            ]
         },
-        default="Sorttt"
+        default=sentiment
     )
-    limit = col2.number_input(
-        "Limit",
-        min_value=0,
-        max_value=100,
-        value=10,
-        step=1
-    )
-    con = st.container()
-    queries = [k for k in QUERIES if k not in EXCLUDE_QUERIES]
-    dates = DATES
-    if st.checkbox("Filter"):
         queries = multiselect_2(
-            st, 
+            container, 
             "Query", 
             {k:k for k in queries}, 
             default=queries
         )
         dates = multiselect_2(
-            st, 
+            container, 
             "Tanggal", 
             {k:k for k in dates}, 
             default=dates
         )
-    ids = [901048172738482176] * 10
-    tweet_slides(con, ids, key="twitter")
+    merged = merge_data(all_data, queries, dates)
+    if sentiment != "all":
+        merged = merged[merged["sentiment_label"]==LABELS[sentiment]]
+    col1, col2 = con1.columns(2)
+    sorting = selectbox_2(
+        col1,
+        "Sort by",
+        {
+            k: LABELS[k]
+            for k in [
+                "like_count",
+                "reply_count",
+                "retweet_count",
+                "quote_count",
+                "engagement"
+            ]
+        },
+        default=sorting
+    )
+    limit = col2.number_input(
+        "Limit",
+        min_value=0,
+        max_value=100,
+        value=limit,
+        step=1
+    )
+    merged = merged.sort_values(sorting, ascending=False).iloc[:int(limit)].reset_index()
+    #st.dataframe(merged)
+    tweets = merged.to_dict('records')
+    #st.write(tweets)
+    tweet_slides(con2, tweets, key="twitter")
     
 
 def app():
@@ -137,4 +163,4 @@ def app():
         aggregate_section(aggregate)
 
     with st.expander("Top Tweets", expanded=True):
-        tweet_section(all_data)
+        tweet_section(st, all_data)

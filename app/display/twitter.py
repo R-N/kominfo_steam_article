@@ -27,30 +27,32 @@ def tweet_polarity_line_2(container, df, whitelist=DEFAULT_QUERIES, labels={}):
     container.plotly_chart(fig, use_container_width=True)
 
 
-def display_tweet(container, id, title=None):
+def display_tweet(container, tweet, title=None):
     con = container.container()
     if title:
-        con.markdown("# #{0}".format(title))
-    con.write(get_tweet(id), unsafe_allow_html=True)
-    col1, col2, col3, col4, col5 = con.columns(5)
-    col1.metric("Polarity", numerize.numerize(0.5))
-    col2.metric("Like", numerize.numerize(1))
-    col3.metric("Reply", numerize.numerize(1))
-    col4.metric("Retweet", numerize.numerize(1))
-    col5.metric("Quote", numerize.numerize(1))
+        con.markdown("### Tweet #{0}".format(title))
+    con.write(get_tweet(tweet["id"], tweet["text"]), unsafe_allow_html=True)
+    col1, col2, col3, col4, col5, col6 = con.columns(6)
+    col1.metric("Sentimen", tweet["sentiment_label"])
+    col2.metric("Polarity", numerize.numerize(tweet["polarity"]))
+    col3.metric("Like", numerize.numerize(float(tweet["like_count"])))
+    col4.metric("Reply", numerize.numerize(float(tweet["reply_count"])))
+    col5.metric("Retweet", numerize.numerize(float(tweet["retweet_count"])))
+    col6.metric("Quote", numerize.numerize(float(tweet["quote_count"])))
 
-def tweet_slides(con, ids, key="default"):
+def tweet_slides(con, tweets, key="default"):
     index = 0
+    max_index = len(tweets)-1
     var = "tweet_slides_{0}".format(key)
     params = st.experimental_get_query_params()
     if var in params:
         index = int(params[var][0])
     else:
-        st.experimental_set_query_params(**{var: index})
-    tweet = ids[index]
-    display_tweet(con, tweet, index)
+        con.experimental_set_query_params(**{var: index})
+    tweet = tweets[index]
+    display_tweet(con, tweet, index+1)
     col1, col2, col3 = con.columns((1, 10, 1))
     if col1.button("<"):
-        st.experimental_set_query_params(**{var: index-1})
+        st.experimental_set_query_params(**{var: max(0, min(max_index, index-1))})
     if col3.button(">"):
-        st.experimental_set_query_params(**{var: index+1})
+        st.experimental_set_query_params(**{var: max(0, min(max_index, index+1))})

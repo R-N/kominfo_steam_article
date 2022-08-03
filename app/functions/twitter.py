@@ -45,6 +45,7 @@ EXCLUDE_QUERIES = [
     "kominfo serang",
     "kominfo slot"
 ]
+INCLUDE_QUERIES = [k for k in QUERIES if k not in EXCLUDE_QUERIES]
 DEFAULT_QUERIES = [
     "kominfo",
     "kominfo block",
@@ -56,6 +57,12 @@ DEFAULT_QUERIES = [
 LABELS = {
     "date": "Tanggal",
     "variable": "Variabel",
+    "all": "Semua",
+    "like_count": "Like",
+    "reply_count": "Reply",
+    "retweet_count": "Retweet",
+    "quote_count": "Quote",
+    "engagement": "Interaksi",
     **SENTIMENT_LABELS,
     **{
         "{0}_volume".format(k): "{0} (volume)".format(v)
@@ -86,7 +93,7 @@ def group_sentiment(df, bins=DEFAULT_NEUTRAL_BINS):
     df["sentiment_label"] = pd.cut(
         x=df['polarity'],
         bins=[-1.0, *bins, 1.0],
-        labels=list(SENTIMENT_LABELS.values())
+        labels=[SENTIMENT_LABELS[k] for k in POLARITY_LABEL_COLS]
     )
     return df
 
