@@ -147,7 +147,7 @@ def steam_histogram_section(container, df, key="default"):
             "estimated_revenue",
             "estimated_revenue_positive"
         ] if x in df.columns
-    }, default="price_initial", key=key)
+    }, default="estimated_revenue_positive", key=key)
     df, limit = steam_limit_df(container, df, col, key=key)
     steam_show_metrics(container, df[col], 1)
     game_histogram(container, df, col)
