@@ -268,7 +268,7 @@ def app():
     col1.markdown("- [Green Tunnel (Windows, Linux, MacOS)](https://github.com/SadeghHayeri/GreenTunnel)")
     col1.markdown("- [DPITunnel v2 (Linux & Android, perlu root)](https://github.com/zhenyolka/DPITunnel-android)")
     col1.markdown("- [PowerTunnel (Windows & Android)](https://github.com/krlvm/PowerTunnel)")
-    col1.markdown("Meskipun ada cara bypass pemblokiran, ini hanya solusi sementara. Jika benar-benar diblokir permanen, suatu layanan akan menjadi ilegal. Ini berarti pemberi layanan tidak dapat mendukung Indonesia. Misalnya, kalian akan kesulitan untuk topup. Steam sendiri sudah ada sejak lama sekali, namun dulu sangat sulit untuk topup dengan rupiah. Ini hanya salah satu contoh.")
+    col1.markdown("Meskipun ada cara bypass pemblokiran, ini hanya solusi sementara. Jika benar-benar diblokir permanen, suatu layanan akan menjadi ilegal. Ini berarti meskipun kita bisa bypass blokir, pemberi layanan tidak dapat mendukung Indonesia. Contohnya, kalian akan kesulitan untuk topup dengan rupiah.")
 
     st.markdown("## Referensi")
     st.markdown("- [Nanti ya](#)")
