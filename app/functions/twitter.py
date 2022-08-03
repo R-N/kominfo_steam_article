@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from ..global_data import Constants
+import requests
 
 API = "recent"
 QUERIES=[
@@ -212,3 +213,18 @@ def aggregate_data(all_data, min_subjectivity=0.5):
 
 def filter_query(df, query):
     return df[df["query"]==query].set_index("date")
+
+def merge_data(all_data, queries, dates):
+    merged = [all_data[(query, date)] for query in queries for date in dates]
+    merged = pd.concat(merged)
+    merged = merged[~merged.index.duplicated(keep='last')]
+    return merged
+    
+
+def get_tweet(id, fallback=None):
+    try:
+        api = 'https://publish.twitter.com/oembed?url=https://twitter.com/twitter/status/'+str(id)
+        response = requests.get(api)
+        return response.json()["html"]
+    except:
+        return fallback

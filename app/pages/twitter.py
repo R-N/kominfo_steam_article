@@ -3,36 +3,13 @@ import pandas as pd
 import plotly.express as px
 from ..global_data import Constants
 from ..functions.twitter import POLARITY_LABEL_COLS, POLARITY_LABEL_VOLUME_COLS, QUERIES, DATES, EXCLUDE_QUERIES
-from ..functions.twitter import load_all, aggregate_data, filter_query
-from ..display.twitter import tweet_volume_bar_stack, tweet_polarity_line, tweet_polarity_line_2
-from ..display.util import selectbox_2
+from ..functions.twitter import load_all, aggregate_data, filter_query, get_tweet
+from ..display.twitter import tweet_volume_bar_stack, tweet_polarity_line, tweet_polarity_line_2, display_tweet, tweet_slides
+from ..display.util import selectbox_2, multiselect_2
+from numerize import numerize
 
-
-def app():
-    col1, col2, col3 = st.columns(3)
-    neutral_bin_min = col1.number_input(
-        "Minimum Sentimen Netral",
-        min_value=-1.0,
-        max_value=0.0,
-        value=-1.0/3.0,
-        step=0.1
-    )
-    neutral_bin_max = col2.number_input(
-        "Maximum Sentimen Netral",
-        min_value=0.0,
-        max_value=1.0,
-        value=1.0/3.0,
-        step=0.1
-    )
-    min_subjectivity = col3.number_input(
-        "Minimum Subjectivity",
-        min_value=0.0,
-        max_value=1.0,
-        value=0.5,
-        step=0.1
-    )
-    all_data = load_all(sentiment_bins=(neutral_bin_min, neutral_bin_max))
-    aggregate = aggregate_data(all_data, min_subjectivity=min_subjectivity)
+def aggregate_section(aggregate):
+    
 
     col1, col2 = st.columns(2)
     query = selectbox_2(
@@ -59,7 +36,7 @@ def app():
     neutral = selectbox_2(col2, "Netral", {
         "include": "Dihitung",
         "exclude": "Tidak dihitung"
-    }, default="exclude")
+    }, default="include")
 
     value = "{0}_polarity{1}".format(
         "volume" if volume=="volume" else "mean",
@@ -74,3 +51,72 @@ def app():
     )
     tweet_polarity_line_2(st, df_q)
 
+def tweet_section(all_data):
+    col1, col2 = st.columns(2)
+    sorting = selectbox_2(
+        col1,
+        "Sort by",
+        {
+            "Sorttt": "sotrtrt"
+        },
+        default="Sorttt"
+    )
+    limit = col2.number_input(
+        "Limit",
+        min_value=0,
+        max_value=100,
+        value=10,
+        step=1
+    )
+    con = st.container()
+    queries = [k for k in QUERIES if k not in EXCLUDE_QUERIES]
+    dates = DATES
+    if st.checkbox("Filter"):
+        queries = multiselect_2(
+            st, 
+            "Query", 
+            {k:k for k in queries}, 
+            default=queries
+        )
+        dates = multiselect_2(
+            st, 
+            "Tanggal", 
+            {k:k for k in dates}, 
+            default=dates
+        )
+    ids = [901048172738482176] * 10
+    tweet_slides(con, ids, key="twitter")
+    
+
+def app():
+
+    col1, col2, col3 = st.sidebar.columns(3)
+    neutral_bin_min = st.sidebar.number_input(
+        "Minimum Sentimen Netral",
+        min_value=-1.0,
+        max_value=0.0,
+        value=-1.0/3.0,
+        step=0.1
+    )
+    neutral_bin_max = st.sidebar.number_input(
+        "Maximum Sentimen Netral",
+        min_value=0.0,
+        max_value=1.0,
+        value=1.0/3.0,
+        step=0.1
+    )
+    min_subjectivity = st.sidebar.number_input(
+        "Minimum Subjectivity",
+        min_value=0.0,
+        max_value=1.0,
+        value=0.5,
+        step=0.1
+    )
+    all_data = load_all(sentiment_bins=(neutral_bin_min, neutral_bin_max))
+    aggregate = aggregate_data(all_data, min_subjectivity=min_subjectivity)
+
+    with st.expander("Agregat", expanded=True):
+        aggregate_section(aggregate)
+
+    with st.expander("Top Tweets", expanded=True):
+        tweet_section(all_data)
