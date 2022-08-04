@@ -120,25 +120,27 @@ def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES,
     )
     limit = col3.number_input(
         "Limit",
-        min_value=0,
+        min_value=1,
         max_value=100,
         value=limit,
         step=1
     )
+    limit = max(0, min(100, limit))
     merged = merged.sort_values(sorting, ascending=False).iloc[:int(limit)].reset_index()
     #st.dataframe(merged)
     tweets = merged.to_dict('records')
     #st.write(tweets)
     
-    max_index = len(tweets)-1
+    tweet_count = len(tweets)
     index = col1.number_input(
         "Tweet #",
-        min_value=0,
-        max_value=max_index,
-        value=0,
+        min_value=1,
+        max_value=tweet_count,
+        value=1,
         step=1
     )
-    index = int(index)
+    index = int(index) - 1
+    index = max(0, min(tweet_count - 1, index))
     #tweet_slides(con2, tweets, key="twitter")
     
     tweet = tweets[index]

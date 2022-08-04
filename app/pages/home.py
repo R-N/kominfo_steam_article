@@ -67,24 +67,26 @@ def tweet_section(container, all_data, sentiment="all", queries=TWITTER_INCLUDE_
     )
     limit = col3.number_input(
         "Limit",
-        min_value=0,
+        min_value=1,
         max_value=100,
         value=limit,
         step=1
     )
+    limit = max(1, min(100, limit))
     merged = merged.sort_values(sorting, ascending=False).iloc[:int(limit)].reset_index()
     #st.dataframe(merged)
     tweets = merged.to_dict('records')
     #st.write(tweets)
-    max_index = len(tweets)-1
+    tweet_count = len(tweets)
     index = col1.number_input(
         "Tweet #",
-        min_value=0,
-        max_value=max_index,
-        value=0,
+        min_value=1,
+        max_value=tweet_count,
+        value=1,
         step=1
     )
-    index = int(index)
+    index = int(index) - 1
+    index = max(0, min(tweet_count - 1, index))
     #tweet_slides(con2, tweets, key="twitter")
     
     tweet = tweets[index]
@@ -302,4 +304,10 @@ def app():
     col1.markdown("Meskipun ada cara bypass pemblokiran, ini hanya solusi sementara. Jika benar-benar diblokir permanen, suatu layanan akan menjadi ilegal. Ini berarti meskipun kita bisa bypass blokir, pemberi layanan tidak dapat mendukung Indonesia. Contohnya, kalian akan kesulitan untuk topup dengan rupiah.")
 
     st.markdown("## Referensi")
-    st.markdown("- [Nanti ya](#)")
+    st.markdown("- [Akses Steam sudah dibuka kembali per 2 Agustus 2022](https://gamerwk.com/steam-sudah-bisa-diakses-di-indonesia-kominfo-lepas-blokir/)")
+    st.markdown("- [Komfino blokir Steam dan Paypal hingga menjadi trending Twitter](https://www.detik.com/bali/berita/d-6207923/steam-paypal-diblokir-tagar-blokirkominfo-trending-twitter)")
+    st.markdown("- [Kominfo sudah kirim surat teguran 23 Juli 2022](https://tekno.kompas.com/read/2022/07/29/16450017/batas-pendaftaran-pse-nanti-malam-platform-digital-yang-bandel-akan-diblokir)")
+    st.markdown("- [Whatsapp, FB, Instagram sudah daftar PSE; tidak jadi diblokir](https://www.cnbcindonesia.com/tech/20220720073311-37-356882/whatsapp-fb-instagram-sudah-daftar-kominfo-ga-jadi-diblokir)")
+    st.markdown("- [Isu pemblokiran sebelumnya untuk Google hingga Whatsapp](https://www.cnnindonesia.com/teknologi/20220622152237-192-812237/akses-google-hingga-whatsapp-bisa-diputus-jika-tak-daftar-pse-kominfo)")
+    st.markdown("- [Pendaftaran PSE sudah dibuka sejak 2 Juni 2021](https://aptika.kominfo.go.id/2021/05/ketentuan-pse-lingkup-privat-untuk-lindungi-negara-dan-masyarakat/)")
+    st.markdown("- [Aturan PSE (2020) didasarkan pada UU ITE](https://aptika.kominfo.go.id/2020/01/pendaftaran-penyelenggara-sistem-elektronik-pse/)")

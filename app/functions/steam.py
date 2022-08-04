@@ -93,11 +93,26 @@ def limit_df(container, df_paid, col, key="default"):
         1.0 * 10**6: "< 1 juta",
         500.0 * 10**3: "< 500 ribu",
         200.0 * 10**3: "< 200 ribu",
+        100.0 * 10**3: "< 100 ribu",
+        50.0 * 10**3: "< 50 ribu",
+        20.0 * 10**3: "< 20 ribu",
+        10.0 * 10**3: "< 10 ribu",
+        5.0 * 10**3: "< 5 ribu",
+        2.0 * 10**3: "< 2 ribu",
+        1.0 * 10**3: "< 1000",
+        500: "< 500",
+        200: "< 200",
+        100: "< 100",
+        50: "< 50",
+        20: "< 20",
+        10: "< 10",
         "custom": "Custom"
     }
+    min_value_limit = min_value
+    min_value_limit = df_paid[df_paid[col] > 0.0][col].min()
     limit_labels = {
         k: v for k, v in limit_labels.items() 
-        if not isinstance(k, (int, float)) or (min_value <= k and k <= max_value)
+        if not isinstance(k, (int, float)) or (min_value_limit <= k and k <= max_value)
     }
     col1, col2 = container.columns(2)
     limit = col1.selectbox(

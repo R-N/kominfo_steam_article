@@ -53,7 +53,7 @@ def game_availabiltiy_pie(container, paid, free, unavailable, unreleased):
 
 def game_scatter(container, df, x, y, zs, labels={}):
     zs = [
-        pd.Series([numerize.numerize(x) for x in df[z].to_numpy()], name=z) 
+        pd.Series([numerize.numerize(float(x)) for x in df[z].to_numpy()], name=z) 
         if (isinstance(z, (tuple, list)) and z[1]) or (is_numeric_dtype(df[z]) and df[z].max() > 10**3) else df[z]
         for z in zs
     ]

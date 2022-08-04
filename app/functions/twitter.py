@@ -63,6 +63,9 @@ LABELS = {
     "retweet_count": "Retweet",
     "quote_count": "Quote",
     "engagement": "Interaksi",
+    "count": "Jumlah",
+    "count_rt": "Jumlah (termasuk retweet)",
+    "count_rt_quote": "Jumlah (termasuk retweet dan quote)",
     **SENTIMENT_LABELS,
     **{
         "{0}_volume".format(k): "{0} (volume)".format(v)
