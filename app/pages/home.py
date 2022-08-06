@@ -304,6 +304,9 @@ def app():
     col1.markdown("Meskipun ada cara bypass pemblokiran, ini hanya solusi sementara. Jika benar-benar diblokir permanen, suatu layanan akan menjadi ilegal. Ini berarti meskipun kita bisa bypass blokir, pemberi layanan tidak dapat mendukung Indonesia. Contohnya, kalian akan kesulitan untuk topup dengan rupiah.")
 
     st.markdown("## Referensi")
+    st.markdown("- [Games from Indonesia (Part 2)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/62128)")
+    st.markdown("- [Games from Indonesia (Part 1)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/37980)")
+    st.markdown("- [Daftar Game Buatan Developer Indonesia di Steam](https://steamcommunity.com/groups/indosteamcommunity/discussions/1/1486613649676936297?ctp=14)")
     st.markdown("- [Akses Steam sudah dibuka kembali per 2 Agustus 2022](https://gamerwk.com/steam-sudah-bisa-diakses-di-indonesia-kominfo-lepas-blokir/)")
     st.markdown("- [Komfino blokir Steam dan Paypal hingga menjadi trending Twitter](https://www.detik.com/bali/berita/d-6207923/steam-paypal-diblokir-tagar-blokirkominfo-trending-twitter)")
     st.markdown("- [Kominfo sudah kirim surat teguran 23 Juli 2022](https://tekno.kompas.com/read/2022/07/29/16450017/batas-pendaftaran-pse-nanti-malam-platform-digital-yang-bandel-akan-diblokir)")
