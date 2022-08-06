@@ -10,98 +10,103 @@ from numerize import numerize
 
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
-def sentiment_section(container, aggregate, query="kominfo", volume="volume", key="sentiment"):
-    con = container.container()
-    with container.expander("Opsi"):
+def sentiment_section(
+    container, 
+    aggregate, 
+    query="kominfo", 
+    volume="volume", 
+    compact=False,
+    key="sentiment"
+):
+    con = container.container() if compact else container
+    def option_section(col1, col2, query=query, volume=volume):
         query = selectbox_2(
-            st, 
+            col1, 
             "Query", 
-            {k:k for k in QUERIES if k not in EXCLUDE_QUERIES}, 
+            {k:k for k in INCLUDE_QUERIES}, 
             default=query,
             key=key
         )
-        volume = selectbox_2(st, "Volume", {
+        volume = selectbox_2(col2, "Volume", {
             "volume": "Dikali like/rt",
             "count": "Hanya jumlah"
         }, default=volume, key=key)
         labels = POLARITY_LABEL_VOLUME_COLS if volume=="volume" else POLARITY_LABEL_COLS
+        return query, labels
 
+    if compact:
+        with container.expander("Opsi"):
+            query, labels = option_section(st, st)
+    else:
+        query, labels = option_section(*container.columns(2))
     df_q = filter_query(aggregate, query)
     tweet_volume_bar_stack(con, df_q, labels)
 
 
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
-def volume_section(container, aggregate, query="kominfo", count="count", key="volume"):
-    con = container.container()
-    with container.expander("Opsi"):
+def volume_section(
+    container, 
+    aggregate, 
+    query="kominfo", 
+    count="count", 
+    compact=False,
+    key="volume"
+):
+    con = container.container() if compact else container
+    def option_section(col1, col2, query=query, count=count):
         query = selectbox_2(
-            st, 
+            col1, 
             "Query", 
             {k:k for k in QUERIES if k not in EXCLUDE_QUERIES}, 
             default=query,
             key=key
         )
-        count = selectbox_2(st, "Jumlah", {
+        count = selectbox_2(col2, "Jumlah", {
             "count": "Hanya tweet original",
             "count_rt": "Tweet + Retweet",
             "count_rt_quote": "Tweet + Retweet + Quote"
         }, default=count, key=key)
+        return query, count
+
+    if compact:
+        with container.expander("Opsi"):
+            query, count = option_section(st, st)
+    else:
+        query, count = option_section(*container.columns(2))
     df_q = filter_query(aggregate, query)
     tweet_volume_bar_stack(con, df_q, count)
 
 
-def aggregate_section(aggregate):
+def polarity_section(
+    container, 
+    aggregate,
+    volume="volume",
+    neutral="include",
+    compact=False
+):
+    con = container.container() if compact else container
+    
+    def option_section(col1, col2, volume=volume, neutral=neutral):
+        volume = selectbox_2(col1, "Volume", {
+            "volume": "Dikali like/rt",
+            "polarity": "Hanya polaritas"
+        }, default=volume)
+        neutral = selectbox_2(col2, "Netral", {
+            "include": "Dihitung",
+            "exclude": "Tidak dihitung"
+        }, default=neutral)
+        value = "{0}_polarity{1}".format(
+            "volume" if volume=="volume" else "mean",
+            "_no_neutral" if neutral=="exclude" else ""
+        )
+        return value, neutral
 
-    col1, col2 = st.columns(2)
-    query = selectbox_2(
-        col1, 
-        "Query", 
-        {k:k for k in QUERIES if k not in EXCLUDE_QUERIES}, 
-        default="kominfo",
-        key="count"
-    )
-    count = selectbox_2(col2, "Jumlah", {
-        "count": "Hanya tweet original",
-        "count_rt": "Tweet + Retweet",
-        "count_rt_quote": "Tweet + Retweet + Quote"
-    }, default="count_rt")
-
-    df_q = filter_query(aggregate, query)
-    tweet_volume_bar_stack(st, df_q, count)
-
-    col1, col2 = st.columns(2)
-    query = selectbox_2(
-        col1, 
-        "Query", 
-        {k:k for k in QUERIES if k not in EXCLUDE_QUERIES}, 
-        default="kominfo",
-        key="sentiment"
-    )
-    volume = selectbox_2(col2, "Volume", {
-        "volume": "Dikali like/rt",
-        "count": "Hanya jumlah"
-    }, default="volume")
-
-    df_q = filter_query(aggregate, query)
-
-    y = POLARITY_LABEL_VOLUME_COLS if volume=="volume" else POLARITY_LABEL_COLS
-    tweet_volume_bar_stack(st, df_q, y)
-
-    col1, col2 = st.columns(2)
-    volume = selectbox_2(col1, "Volume", {
-        "volume": "Dikali like/rt",
-        "polarity": "Hanya polaritas"
-    }, default="volume")
-    neutral = selectbox_2(col2, "Netral", {
-        "include": "Dihitung",
-        "exclude": "Tidak dihitung"
-    }, default="include")
-
-    value = "{0}_polarity{1}".format(
-        "volume" if volume=="volume" else "mean",
-        "_no_neutral" if neutral=="exclude" else ""
-    )
+    if compact:
+        with container.expander("Opsi"):
+            value, neutral = option_section(st, st)
+    else:
+        value, neutral = option_section(*container.columns(2))
 
     df_q = pd.pivot_table(
         aggregate, 
@@ -109,15 +114,49 @@ def aggregate_section(aggregate):
         index="date",
         columns="query"
     )
-    tweet_polarity_line_2(st, df_q)
+    tweet_polarity_line_2(con, df_q)
+
+def aggregate_section(container, aggregate):
+
+    container.markdown("## Tweet Volume")
+    volume_section(
+        container,
+        aggregate
+    )
+
+    container.markdown("## Tweet Sentiment Volume")
+    sentiment_section(
+        container,
+        aggregate
+    )
+
+    container.markdown("## Tweet Polarity")
+    polarity_section(
+        container,
+        aggregate
+    )
 
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
-def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES, dates=DATES, sorting="engagement", limit=10, show=1):
-    con1 = container.container()
-    con2 = container.container()
-    with container.expander("Opsi"):
-        col2, col3, col4, col5 = st.columns(4)
+def tweet_section(
+    container, 
+    all_data, 
+    sentiment="all", 
+    queries=INCLUDE_QUERIES, 
+    dates=DATES, 
+    sorting="engagement", 
+    limit=10, 
+    show=1,
+    compact=False
+):
+    con = container.container() if compact else container
+    def option_section(
+        col2, col3, col4, col5,
+        sentiment=sentiment,
+        sorting=sorting,
+        limit=limit,
+        show=show
+    ):
         sentiment = selectbox_2(
             col2,
             "Sentimen",
@@ -167,6 +206,13 @@ def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES,
         show = int(show)
         show = max(1, min(limit, show))
 
+        return sentiment, sorting, limit, show
+
+    if not compact:
+        sentiment, sorting, limit, show = option_section(*container.columns(4))
+    with container.expander("Opsi"):
+        if compact:
+            sentiment, sorting, limit, show = option_section(*st.columns(4))
         queries = multiselect_2(
             st, 
             "Query", 
@@ -188,25 +234,11 @@ def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES,
     tweets = merged.to_dict('records')
     #st.write(tweets)
     tweet_count = len(tweets)
-    """
-    index = col1.number_input(
-        "Tweet #",
-        min_value=1,
-        max_value=tweet_count,
-        value=1,
-        step=1
-    )
-    index = int(index) - 1
-    index = max(0, min(tweet_count - 1, index))
-    #tweet_slides(con2, tweets, key="twitter")
-    
-    tweet = tweets[index]
-    display_tweet(con2, tweet, "Top Tweet #{0}".format(index+1))
-    """
+
     for i in range (0, show):
-        display_tweet(con2, tweets[i], "Top Tweet #{0}".format(i+1))
+        display_tweet(con, tweets[i], "Top Tweet #{0}".format(i+1))
     if tweet_count > 0:
-        with con2.expander("Lihat tweet lainnya"):
+        with con.expander("Lihat tweet lainnya"):
             for i in range(show, tweet_count):
                 display_tweet(st, tweets[i], "Top Tweet #{0}".format(i+1))
 
@@ -238,8 +270,8 @@ def app():
     all_data = load_all(sentiment_bins=(neutral_bin_min, neutral_bin_max))
     aggregate = aggregate_data(all_data, min_subjectivity=min_subjectivity)
 
-    with st.expander("Agregat", expanded=True):
-        aggregate_section(aggregate)
+    st.markdown("# Agregat")
+    aggregate_section(st, aggregate)
 
-    with st.expander("Top Tweets", expanded=True):
-        tweet_section(st, all_data)
+    st.markdown("# Top Tweets")
+    tweet_section(st, all_data, show=3)

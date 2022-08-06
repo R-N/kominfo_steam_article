@@ -12,7 +12,15 @@ def tweet_volume_bar_stack(container, df, y, labels={}):
     fig = px.bar(
         df,  
         y=y,
-        labels={"value": "Volume", **LABELS, **labels}
+        labels={"value": "Volume", **LABELS, **labels},
+        color_discrete_map={
+            'positive_volume': '#2962FF',
+            'positive': '#2962FF',
+            'neutral_volume': '#B0BEC5',
+            'neutral': '#B0BEC5',
+            'negative_volume': '#D50000',
+            'negative': '#D50000',
+        }
     )
     fig_defaults(fig)
     container.plotly_chart(fig, use_container_width=True)

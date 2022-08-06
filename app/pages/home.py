@@ -222,11 +222,11 @@ def app():
     ''', unsafe_allow_html=True)
 
     tab_volume, tab_sentiment, tab_gtrends = col2.tabs(["Volume", "Sentimen", "Google Trends"])
-    tweet_volume_section(tab_volume, aggregate)
-    tweet_sentiment_section(tab_sentiment, aggregate)
+    tweet_volume_section(tab_volume, aggregate, compact=True)
+    tweet_sentiment_section(tab_sentiment, aggregate, compact=True)
     gtrends_section(tab_gtrends)
 
-    tweet_section(st, all_data)
+    tweet_section(st, all_data, compact=True)
 
     st.markdown("# Steam dan GameDev Indonesia")
 
