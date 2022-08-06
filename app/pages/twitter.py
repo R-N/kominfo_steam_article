@@ -4,7 +4,7 @@ import plotly.express as px
 from ..global_data import Constants
 from ..functions.twitter import DEFAULT_MIN_SUBJECTIVITY, POLARITY_LABEL_COLS, POLARITY_LABEL_VOLUME_COLS, QUERIES, DATES, EXCLUDE_QUERIES, DEFAULT_NEUTRAL_BINS, DEFAULT_MIN_SUBJECTIVITY, LABELS, INCLUDE_QUERIES
 from ..functions.twitter import load_all, aggregate_data, filter_query, get_tweet, merge_data
-from ..display.twitter import tweet_volume_bar_stack, tweet_polarity_line, tweet_polarity_line_2, display_tweet, tweet_slides
+from ..display.twitter import tweet_volume_bar_stack, tweet_polarity_line, tweet_polarity_line_2, display_tweet, tweet_slides, tweet_volume_line
 from ..display.util import selectbox_2, multiselect_2
 from numerize import numerize
 
@@ -15,11 +15,15 @@ def sentiment_section(
     aggregate, 
     query="kominfo", 
     volume="volume", 
+    chart="bar",
     compact=False,
     key="sentiment"
 ):
     con = container.container() if compact else container
-    def option_section(col1, col2, query=query, volume=volume):
+    def option_section(
+        col1, col2, col3,
+        query=query, volume=volume, chart=chart
+    ):
         query = selectbox_2(
             col1, 
             "Query", 
@@ -32,15 +36,20 @@ def sentiment_section(
             "count": "Hanya jumlah"
         }, default=volume, key=key)
         labels = POLARITY_LABEL_VOLUME_COLS if volume=="volume" else POLARITY_LABEL_COLS
-        return query, labels
+        chart = selectbox_2(col3, "Grafik", {
+            "bar": "Bar chart",
+            "line": "Line chart"
+        }, default=chart, key=key)
+        return query, labels, chart
 
     if compact:
         with container.expander("Opsi"):
-            query, labels = option_section(st, st)
+            query, labels, chart = option_section(st, st, st)
     else:
-        query, labels = option_section(*container.columns(2))
+        query, labels, chart = option_section(*container.columns(3))
     df_q = filter_query(aggregate, query)
-    tweet_volume_bar_stack(con, df_q, labels)
+    f = tweet_volume_bar_stack if chart == "bar" else tweet_volume_line
+    f(con, df_q, labels)
 
 
 
@@ -50,11 +59,15 @@ def volume_section(
     aggregate, 
     query="kominfo", 
     count="count", 
+    chart="bar",
     compact=False,
     key="volume"
 ):
     con = container.container() if compact else container
-    def option_section(col1, col2, query=query, count=count):
+    def option_section(
+        col1, col2, col3, 
+        query=query, count=count, chart=chart
+    ):
         query = selectbox_2(
             col1, 
             "Query", 
@@ -67,15 +80,20 @@ def volume_section(
             "count_rt": "Tweet + Retweet",
             "count_rt_quote": "Tweet + Retweet + Quote"
         }, default=count, key=key)
-        return query, count
+        chart = selectbox_2(col3, "Grafik", {
+            "bar": "Bar chart",
+            "line": "Line chart"
+        }, default=chart, key=key)
+        return query, count, chart
 
     if compact:
         with container.expander("Opsi"):
-            query, count = option_section(st, st)
+            query, count, chart = option_section(st, st, st)
     else:
-        query, count = option_section(*container.columns(2))
+        query, count, chart = option_section(*container.columns(3))
     df_q = filter_query(aggregate, query)
-    tweet_volume_bar_stack(con, df_q, count)
+    f = tweet_volume_bar_stack if chart == "bar" else tweet_volume_line
+    f(con, df_q, count)
 
 
 def polarity_section(

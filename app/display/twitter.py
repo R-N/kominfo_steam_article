@@ -25,6 +25,24 @@ def tweet_volume_bar_stack(container, df, y, labels={}):
     fig_defaults(fig)
     container.plotly_chart(fig, use_container_width=True)
 
+def tweet_volume_line(container, df, y, labels={}):
+    fig = px.line(
+        df,  
+        y=y,
+        labels={"value": "Volume", **LABELS, **labels},
+        color_discrete_map={
+            'positive_volume': '#2962FF',
+            'positive': '#2962FF',
+            'neutral_volume': '#B0BEC5',
+            'neutral': '#B0BEC5',
+            'negative_volume': '#D50000',
+            'negative': '#D50000',
+        },
+        markers=True
+    )
+    fig_defaults(fig)
+    container.plotly_chart(fig, use_container_width=True)
+
 def tweet_polarity_line(container, df, cols, labels={}):
     fig = df[cols].plot(labels={**LABELS, **labels}, markers=True)
     fig_defaults(fig)
