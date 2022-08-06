@@ -6,8 +6,8 @@ from numerize import numerize
 from ..functions.util import join_tag, groupby_tag, MySet
 from ..display.util import selectbox_2, multiselect_2
 from ..functions.steam import CSV_COLS, LABELS
-from ..functions.steam import split_by_availability, limit_df, groupby_tag_2, init_df
-from ..display.steam import game_availabiltiy_pie, show_metrics, game_histogram, game_bar_horizontal, game_scatter, collection_union_pie_2
+from ..functions.steam import split_by_availability, groupby_tag_2, init_df
+from ..display.steam import game_availabiltiy_pie, show_metrics, game_histogram, game_bar_horizontal, game_scatter, collection_union_pie_2, limit_df
 import json
 import functools
 

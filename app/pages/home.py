@@ -3,221 +3,142 @@ import pandas as pd
 from ..functions.twitter import POLARITY_LABEL_VOLUME_COLS as TWITTER_POLARITY_LABEL_VOLUME_COLS, QUERIES as TWITTER_QUERIES, EXCLUDE_QUERIES as TWITTER_EXCLUDE_QUERIES, POLARITY_LABEL_COLS as TWITTER_POLARITY_LABEL_COLS, LABELS as TWITTER_LABELS, INCLUDE_QUERIES as TWITTER_INCLUDE_QUERIES, DATES as TWITTER_DATES
 from ..functions.twitter import load_all as twitter_load_all, aggregate_data as twitter_aggregate_data, filter_query as twitter_filter_query, merge_data as twitter_merge_data
 from ..display.twitter import tweet_volume_bar_stack, tweet_slides, display_tweet
-from ..display.steam import game_bar_horizontal, game_scatter, show_metrics as steam_show_metrics, game_histogram
+from ..display.steam import game_bar_horizontal, game_scatter, show_metrics as steam_show_metrics, game_histogram, limit_df as steam_limit_df, game_availabiltiy_pie, show_metrics_table as steam_show_metrics_table
 from ..global_data import Constants
 from ..functions.steam import LABELS as STEAM_LABELS
 from ..functions.gtrends import LABELS as GTRENDS_LABELS, DEFAULT_COLS_1 as GTRENDS_DEFAULT_COLS_1
 from ..functions.gtrends import load_df as gtrends_load_df
 from ..display.gtrends import trend_line
 from ..display.util import selectbox_2, multiselect_2
-from ..functions.steam import split_by_availability as steam_split_by_availabiltiy, init_df as steam_init_df, groupby_tag_2 as steam_groupby_tag_2, limit_df as steam_limit_df
+from ..functions.steam import split_by_availability as steam_split_by_availabiltiy, init_df as steam_init_df, groupby_tag_2 as steam_groupby_tag_2
+from ..pages.twitter import tweet_section, sentiment_section as tweet_sentiment_section, volume_section as tweet_volume_section
+from ..pages.gtrends import gtrends_section
 import json
 
-container_type = type(st.container)
-
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
-def tweet_section(container, all_data, sentiment="all", queries=TWITTER_INCLUDE_QUERIES, dates=TWITTER_DATES, sorting="engagement", limit=10):
-    con1 = container.container()
-    con2 = container.container()
-    if container.checkbox("Filter"):
-        sentiment = selectbox_2(
-        container,
-        "Sentimen",
-        {
-            k: TWITTER_LABELS[k]
-            for k in [
-                "positive",
-                "neutral",
-                "negative",
-                "all"
-            ]
-        },
-        default=sentiment
-    )
-        queries = multiselect_2(
-            container, 
-            "Query", 
-            {k:k for k in queries}, 
-            default=queries
-        )
-        dates = multiselect_2(
-            container, 
-            "Tanggal", 
-            {k:k for k in dates}, 
-            default=dates
-        )
-    merged = twitter_merge_data(all_data, queries, dates)
-    if sentiment != "all":
-        merged = merged[merged["sentiment_label"]==TWITTER_LABELS[sentiment]]
-    col1, col2, col3 = con1.columns(3)
-    sorting = selectbox_2(
-        col2,
-        "Sort by",
-        {
-            k: TWITTER_LABELS[k]
-            for k in [
-                "like_count",
-                "reply_count",
-                "retweet_count",
-                "quote_count",
-                "engagement"
-            ]
-        },
-        default=sorting
-    )
-    limit = col3.number_input(
-        "Limit",
-        min_value=1,
-        max_value=100,
-        value=limit,
-        step=1
-    )
-    limit = max(1, min(100, limit))
-    merged = merged.sort_values(sorting, ascending=False).iloc[:int(limit)].reset_index()
-    #st.dataframe(merged)
-    tweets = merged.to_dict('records')
-    #st.write(tweets)
-    tweet_count = len(tweets)
-    index = col1.number_input(
-        "Tweet #",
-        min_value=1,
-        max_value=tweet_count,
-        value=1,
-        step=1
-    )
-    index = int(index) - 1
-    index = max(0, min(tweet_count - 1, index))
-    #tweet_slides(con2, tweets, key="twitter")
-    
-    tweet = tweets[index]
-    display_tweet(con2, tweet, "Top Tweet #{0}".format(index+1))
-
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
-def gtrends_section(container, sheet="indo_hourly", labels=GTRENDS_LABELS, whitelist=GTRENDS_DEFAULT_COLS_1, key="trends1"):
-    if container.checkbox("Opsi", key=key):
-        sheet = selectbox_2(container, "Google Trends", labels, default="indo_hourly")
-    df = gtrends_load_df(sheet)
-    trend_line(container, df, whitelist=whitelist)
-
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
-def tweet_sentiment_section(container, aggregate, query="kominfo", labels=TWITTER_POLARITY_LABEL_VOLUME_COLS, key="sentiment"):
-    
-    if container.checkbox("Opsi", key=key):
-        query = selectbox_2(
-            container, 
-            "Query", 
-            {k:k for k in TWITTER_QUERIES if k not in TWITTER_EXCLUDE_QUERIES}, 
-            default="kominfo",
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
+def steam_histogram_section(
+    container, 
+    df, 
+    col="estimated_revenue_positive", 
+    limit=None,
+    show_metrics=True, 
+    compact=True,
+    nbins=5,
+    height=360,
+    key="default"
+):
+    con = container.container() if compact else container
+    with container.expander("Opsi"):
+        col = selectbox_2(st, "x", {
+            x: STEAM_LABELS[x] for x in [
+                "price_initial",
+                "total_reviews",
+                "total_positive",
+                "estimated_revenue",
+                "estimated_revenue_positive"
+            ] if x in df.columns
+        }, default=col, key=key)
+        df, limit = steam_limit_df(
+            st, 
+            df, 
+            col, 
+            default=limit,
+            compact=compact,
             key=key
         )
-        volume = selectbox_2(container, "Volume", {
-            "volume": "Dikali like/rt",
-            "count": "Hanya jumlah"
-        }, default="volume", key=key)
-        labels = TWITTER_POLARITY_LABEL_VOLUME_COLS if volume=="volume" else TWITTER_POLARITY_LABEL_COLS
+    if not compact:
+        con = container.container()
+    if show_metrics and not compact:
+        steam_show_metrics(con, df[col], 1, compact=compact)
+    game_histogram(con, df, col, nbins=nbins, height=height)
+    if show_metrics and compact:
+        steam_show_metrics_table(con, df[col], 1)
 
-    df_q = twitter_filter_query(aggregate, query)
-    con = container.container()
-    tweet_volume_bar_stack(con, df_q, labels)
-
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
-def tweet_volume_section(container, aggregate, query="kominfo", count="count_rt", key="volume"):
-    if container.checkbox("Opsi", key=key):
-        query = selectbox_2(
-            container, 
-            "Query", 
-            {k:k for k in TWITTER_QUERIES if k not in TWITTER_EXCLUDE_QUERIES}, 
-            default="kominfo",
-            key=key
-        )
-        count = selectbox_2(container, "Jumlah", {
-            "count": "Hanya tweet original",
-            "count_rt": "Tweet + Retweet",
-            "count_rt_quote": "Tweet + Retweet + Quote"
-        }, default="count_rt", key=key)
-    df_q = twitter_filter_query(aggregate, query)
-    con = container.container()
-    tweet_volume_bar_stack(con, df_q, count)
-
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
-def steam_histogram_section(container, df, key="default"):
-    col = selectbox_2(container, "x", {
-        x: STEAM_LABELS[x] for x in [
-            "price_initial",
-            "total_reviews",
-            "total_positive",
-            "estimated_revenue",
-            "estimated_revenue_positive"
-        ] if x in df.columns
-    }, default="estimated_revenue_positive", key=key)
-    df, limit = steam_limit_df(container, df, col, key=key)
-    steam_show_metrics(container, df[col], 1)
-    game_histogram(container, df, col)
-
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
-def steam_scatter_section(container, df, key="default"):
-    col1, col2 = container.columns(2)
-    x = selectbox_2(col1, "x", {
-        x: STEAM_LABELS[x] for x in [
-            "price_initial",
-            "total_reviews",
-            "total_positive",
-            "release_date"
-        ] if x in df.columns
-    }, default="price_initial", key=key)
-    y = selectbox_2(col2, "y", {
-        x: STEAM_LABELS[x] for x in [
-            "price_initial",
-            "total_reviews",
-            "total_positive",
-            "release_date",
-            "estimated_revenue",
-            "estimated_revenue_positive",
-        ] if x in df.columns
-    }, default="total_positive", key=key)
-    zs = multiselect_2(container, "z", {
-        x: STEAM_LABELS[x] for x in [
-            "total_reviews",
-            "total_positive",
-            "estimated_revenue",
-            "estimated_revenue_positive",
-            "developers",
-            "publishers"
-        ] if x in df.columns
-    }, default=[
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
+def steam_scatter_section(
+    container, df, 
+    x="price_initial", 
+    y="total_positive",
+    zs=[
         "estimated_revenue",
         "estimated_revenue_positive",
         "review_summary",
         "developers",
         "publishers"
-    ], key=key)
+    ],
+    x_options=[
+        "price_initial",
+        "total_reviews",
+        "total_positive",
+        "release_date"
+    ],
+    y_options=[
+        "price_initial",
+        "total_reviews",
+        "total_positive",
+        "release_date",
+        "estimated_revenue",
+        "estimated_revenue_positive",
+    ],
+    z_options=[
+        "total_reviews",
+        "total_positive",
+        "estimated_revenue",
+        "estimated_revenue_positive",
+        "developers",
+        "publishers"
+    ],
+    hlines=[],
+    compact=True,
+    key="default"
+):
+    con = container.container() if compact else container
+    with container.expander("Opsi"):
+        col1, col2 = st.columns(2) if not compact else ([st] * 2)
+        x = selectbox_2(col1, "x", {
+            x: STEAM_LABELS[x] for x in x_options if x in df.columns
+        }, default=x, key=key)
+        y = selectbox_2(col2, "y", {
+            x: STEAM_LABELS[x] for x in y_options if x in df.columns
+        }, default=y, key=key)
+        zs = multiselect_2(st, "z", {
+            x: STEAM_LABELS[x] for x in z_options if x in df.columns
+        }, default=zs, key=key)
 
-    game_scatter(container, df, x, y, zs)
+    game_scatter(con, df, x, y, zs, hlines=hlines)
 
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, container_type: id})
-def steam_bar_horizontal_section(container, df, key="default"):
-    col1, col2 = container.columns(2)
-    x = selectbox_2(col1, "x", {
-        x: STEAM_LABELS[x] for x in [
-            "price_initial",
-            "total_reviews",
-            "total_positive",
-            "estimated_revenue",
-            "estimated_revenue_positive",
-            "count"
-        ] if x in df.columns
-    }, default="total_positive", key=key)
-    y = selectbox_2(col2, "y", {
-        x: STEAM_LABELS[x] for x in [
-            "genres",
-            "categories",
-            "platforms",
-            "supported_languages",
-            "supported_languages_voice"
-        ] if x in df.columns
-    }, default="genres", key=key)
-    agg_cb = container.checkbox("Agg", value=True, key=key)
-    con = container.container()
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
+def steam_bar_horizontal_section(
+    container, 
+    df, 
+    x="total_positive",
+    y="genres",
+    compact=True,
+    key="default"
+):
+    con = container.container() if compact else container
+    with container.expander("Opsi", expanded=not compact):
+        col1, col2 = st.columns(2) if not compact else ([st] * 2)
+        x = selectbox_2(col1, "x", {
+            x: STEAM_LABELS[x] for x in [
+                "price_initial",
+                "total_reviews",
+                "total_positive",
+                "estimated_revenue",
+                "estimated_revenue_positive",
+                "count"
+            ] if x in df.columns
+        }, default=x, key=key)
+        y = selectbox_2(col2, "y", {
+            x: STEAM_LABELS[x] for x in [
+                "genres",
+                "categories",
+                "platforms",
+                "supported_languages",
+                "supported_languages_voice"
+            ] if x in df.columns
+        }, default=y, key=key)
+        agg_cb = st.checkbox("Agg", value=True, key=key)
     game_bar_horizontal(
         con, df, x, y, 
         agg=agg_cb
@@ -245,38 +166,172 @@ def app():
     df = load_data_steam()
     df_paid, df_free, df_unavailable, df_unreleased = steam_split_by_availabiltiy(df)
 
-    st.markdown("# Steam, Pintu Ekspor Terbesar Industri Game Indonesia yang Ditutup oleh Kominfo")
+    st.title("Steam, Pintu Ekspor Terbesar Industri Game PC Indonesia yang Ditutup oleh Kominfo")
+    st.markdown("Muhammad Rizqi Nur, 2022")
 
     col1, col2 = st.columns((1, 1))
-    col2.image("assets/letmein steam.png")
+    col1.image("assets/img/blokirkominfo.png")
+    col2.image("assets/img/letmein steam.png")
     col2.caption("Insiden pemblokiran Steam oleh Kominfo, circa 2022, memeized")
 
-    col1.image("assets/blokirkominfo.png")
-    col1.markdown("Hari Sabtu tanggal 30 Juli 2022 lalu, terkait aturan PSE, Kemenkominfo telah memblokir beberapa layanan besar dari luar negeri, salah satunya Steam. Pemblokiran ini menghebohkan media internet Indonesia dan langsung menjadi trending twitter. Sebagian besar tweet masih netral dan positif, tapi jumlah tweet negatif juga sangat banyak. Bagaimana tidak, setelah melalui 5 hari kerja yang panjang, orang-orang Indonesia ternyata tidak dapat refreshing dengan game yang telah dibeli; semua karena suatu regulasi baru dari pemerintah. Bukan cuma tempat membeli game, Steam juga adalah pintu ekspor terbesar industri game Indonesia. Developer Indonesia diestimasikan telah meraup sebanyak 1,66 miliar rupiah, dimana 1,58 miliar rupiah di antaranya berasal dari game indie. Developer game indie tidak memiliki sponsor besar dalam pembuatannya, dan industri game di Indonesia sendiri terbilang kecil, tapi Steam memungkinkan mereka menjual ke seluruh dunia. Sepenting itu lah Steam bagi industri dan pasar game Indonesia. Untungnya, per tanggal 2 Agustus 2022, akses Steam telah dibuka kembali.")
+    col1.markdown('''
+    <p class="text-justify">
+        <span class="">H</span>ari <strong>Sabtu 30 Juli 2022</strong> lalu, terkait aturan PSE, <strong>Kominfo telah memblokir</strong> beberapa layanan besar dari luar negeri, salah satunya <strong>Steam</strong>. 
+        Pemblokiran ini menghebohkan media internet Indonesia dan langsung menjadi <strong>trending twitter</strong>. 
+        Sebagian besar tweet masih positif, tapi jumlah <strong>tweet negatif</strong> juga sangat banyak. 
+        Bagaimana tidak, setelah melalui 5 hari kerja yang panjang, orang-orang Indonesia ternyata tidak dapat refreshing dengan game yang telah dibeli; semua karena suatu regulasi baru dari pemerintah. 
+        Bukan cuma tempat membeli game, Steam juga adalah <strong>pintu ekspor terbesar industri game Indonesia</strong>. 
+        Developer Indonesia diestimasikan telah meraup sebanyak <strong>1,66 miliar</strong> rupiah, dimana <strong>1,58 miliar</strong> rupiah di antaranya berasal <strong>dari game indie</strong>. 
+        Developer game indie <strong>tidak memiliki sponsor</strong> besar dalam pembuatannya, dan industri game di Indonesia sendiri terbilang kecil, tapi <strong>Steam memungkinkan mereka menjual ke seluruh dunia</strong>.
+        Sepenting itu lah Steam bagi industri dan pasar game Indonesia. Untungnya, per tanggal <strong>2 Agustus 2022</strong>, akses <strong>Steam telah dibuka</strong> kembali.
+    </p>
+    ''', unsafe_allow_html=True)
 
-    st.markdown("## Trending Twitter dan Kronologi")
+    st.markdown("## Sudah dari seminggu, dua minggu, setahun, dan dua tahun sebelumnya")
+    st.container().markdown('''
+    <p class="text-justify">
+        Pemblokiran yang menyebabkan kehebohan ini dilakukan karena <strong>aturan PSE</strong>, dimana setiap penyelenggara sistem elektronik wajib mendaftar dan memenuhi aturan yang berlaku. 
+        Aturan ini sudah ada sejak tahun  <strong>2020</strong> dan pendaftarannya sudah dibuka sejak  <strong>2 Juni 2021</strong>.
+        Wacana pemblokiran PSE ini sendiri sudah ada dari <strong>dua minggu sebelumnya</strong> dengan <strong>Google, Whatsapp, dan Instagram</strong> sebagai topik dan deadline <strong>20 Juli 2022</strong>, tapi pada akhirnya mereka  <strong>telah mendaftar</strong> dan topik pemblokiran PSE mulai surut. 
+        Dua, tiga hari berlalu, masih tidak terjadi apa-apa; ancaman pemblokiran seperti ancaman kosong. 
+        Ternyata Kominfo tidak langsung melakukan pemblokiran, tapi memberi <strong>surat teguran</strong> pada tanggal <strong>23 Juli 2022</strong> dan <strong>memperpanjang batas pendaftaran</strong> hingga satu minggu setelahnya, yaitu <strong>29 Juli 2022</strong>. 
+        Karena tidak kunjung mendaftar, beberapa layanan besar akhirnya diblokir, salah satunya Steam. 
+    </p>
+    ''', unsafe_allow_html=True)
 
-    col1, col2 = st.columns((2, 3))
+    st.markdown("# Trending")
 
-    col1.markdown("Tanggal 30 Juli 2022, Kominfo langsung melesat ke puncak trending Twitter untuk Indonesia hingga lebih dari 40 ribu tweet. Angka ini tidak termasuk retweet, dan jika retweet dihitung akan mencapai lebih dari 240 ribu tweet. Pemblokiran yang menyebabkan kehebohan ini dilakukan karena aturan PSE, dimana setiap penyelenggara sistem elektronik wajib mendaftar dan memenuhi aturan yang berlaku. Wacana pemblokiran PSE ini sudah dari dua minggu sebelumnya dengan Google, Whatsapp, dan Instagram sebagai topik, tapi pada akhirnya mereka telah mendaftar dan topik PSE mulai surut. Dua, tiga hari berlalu, masih tidak terjadi apa-apa; ancaman pemblokiran seperti ancaman kosong. Ternyata Kominfo tidak langsung melakukan pemblokiran, tapi memberi surat teguran dan memperpanjang batas pendaftaran hingga satu minggu setelahnya. Ini dilakukan pada tanggal 23 Juli 2022. Karena tidak kunjung mendaftar, beberapa layanan besar akhirnya diblokir. Meskipun sebagian besar tweet masih netral dan positif, pemblokiran ini menuai banyak sekali respon negatif.")
+    col2, col1 = st.columns((1, 1))
+    col1.markdown("## 41 ribu tweet dalam sehari")
+    col1.markdown('''
+    <p class="text-justify">
+        Pada tanggal pemblokiran, yaitu <strong>30 Juli 2022</strong>, tweet mengenai kominfo memuncak hingga <strong>41.646</strong> tweet publik. Jumlah ini <strong>tanpa menghitung retweet dan quote</strong>.
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("## Banyak sentimen negatif, tapi sebagian besar masih positif")
+    col1.markdown('''
+    <p class="text-justify">
+        Analisis sentimen dilakukan menggunakan <strong>TextBlob</strong> setelah menerjemahkan tweet ke bahasa Inggris menggunakan <strong>Google Translate</strong>. Tweet dianggap <strong>netral</strong> jika memiliki polaritas dalam range ±0.05. Tiap <strong>tweet diboboti</strong> sebanyak max(like, retweet)+1.
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("## Pencarian DNS meningkat drastis, tapi VPN tidak")
+    col1.markdown('''
+    <p class="text-justify">
+        Masyarakat pasti mencari solusi untuk mengatasi pemblokiran. Anehnya, pencarian keyword DNS meningkat drastis, tapi pencarian keyword "<strong>vpn</strong>" <strong>hanya meningkat sedikit</strong>. Ini berarti <strong>DNS adalah solusi favorit</strong> masyarakat untuk pemblokiran, <strong>bukan VPN</strong>.
+    </p>
+    ''', unsafe_allow_html=True)
 
-    tab_sentiment, tab_volume, tab_gtrends = col2.tabs(["Sentimen", "Volume", "Google Trends"])
-    tweet_sentiment_section(tab_sentiment, aggregate)
+    tab_volume, tab_sentiment, tab_gtrends = col2.tabs(["Volume", "Sentimen", "Google Trends"])
     tweet_volume_section(tab_volume, aggregate)
+    tweet_sentiment_section(tab_sentiment, aggregate)
     gtrends_section(tab_gtrends)
 
     tweet_section(st, all_data)
 
-    st.markdown("## Steam dan Game Indonesia")
+    st.markdown("# Steam dan GameDev Indonesia")
 
     col1, col2 = st.columns((1, 1))
-    col2.image("assets/steam industri.jpg")
-    col2.caption("dan kenapa pendapatan pajak barang digital turun")
+    #col2.image("assets/img/logo_steam.svg")
+    col2.write('''
+    <img 
+        src="https://store.cloudflare.steamstatic.com/public/shared/images/header/logo_steam.svg"
+        class="center"
+    >
+    '''.replace("\n", " "), unsafe_allow_html=True)
 
-    col1.markdown("Steam adalah salah satu layanan yang diblokir tanggal 30 Juli lalu. Steam adalah sebuah marketplace game terbesar di dunia untuk PC. Steam juga adalah pintu ekspor terbesar industri game Indonesia. Developer Indonesia diestimasikan telah meraup sebanyak 1,66 miliar rupiah, dimana penjualan terbesar 437,3 juta rupiah oleh Toge Productions dengan Coffee Talk, sebuah game indie. Developer game indie tidak memiliki sponsor besar dalam pembuatannya, dan industri game di Indonesia sendiri terbilang kecil, tapi Steam memungkinkan mereka menjual ke seluruh dunia. Sebesar 1,58 miliar rupiah dari 1,66 miliar rupiah tadi didapat oleh game indie.")
-    col1.markdown("Game Indonesia di Steam didominasi oleh genre adventure, casual, dan action, tapi kalau dilihat dari popularitas, genre adventure jauh meninggalkan yang lain. Sebagian besar game Indonesia merupakan game single-player dengan fitur steam achievement, steam cloud, dan steam trading cards. Semua game Indonesia mendukung bahasa Inggris, tapi game-game populer juga mendukung bahasa lain seperti bahasa Cina, Jepang, Spanyol, Rusia, Jerman, Portugis-Brazil, Prancis hingga Korea. Anehnya, tidak ditemukan bahasa Indonesia. Apa memang tidak ada atau hanya tag-nya saja yang tidak ada? Masih mengenai bahasa; sebagian besar game Indonesia tidak mendukung suara, tapi yang mendukung suara bahasa Inggris tidak kalah banyak.")
+    col1.markdown("## Platform digital distribusi game PC terbesar di dunia")
+    col1.markdown('''
+    <p class="text-justify">
+        Pada tahun 2013, Steam memiliki <strong>75% pangsa pasar</strong>. Pada tahun 2017, Steam telah menjual sebanyak <strong>4.3 miliar USD</strong>. Pada tahun 2021, Steam sudah memiliki lebih dari <strong>34.000 game</strong> dengan lebih dari <strong>132 juta pengguna aktif per bulan</strong>.
+    </p>
+    ''', unsafe_allow_html=True)
+
+    #col1, col2 = st.columns((1, 1))
+
+    col2.image("assets/img/steam sea.jpg")
+    col2.caption("Virtual SEASia, 2020")
+    col1.markdown("## Game Indonesia paling banyak di Asia Tenggara")
+    col1.markdown('''
+    <p class="text-justify">
+        Menurut VirtualSEA pada tahun 2020, <strong>Indonesia paling banyak</strong> mendaftarkan game di Steam di antara negara-negara Asia Tenggara lainnya. Pada tahun tersebut, terdaftar <strong>124 game dari developer Indonesia</strong>. Angka ini meliputi game yang pada saat itu belum rilis atau early-access.
+    </p>
+    ''', unsafe_allow_html=True)
 
 
+    col2, col1 = st.columns((1, 1))
+    
+    tab_histogram, tab_scatter, tab_pie = col2.tabs(["Histogram", "Scatter Plot", "Ketersediaan Game"])
+    steam_histogram_section(tab_histogram, df_paid, key="revenue")
+    steam_scatter_section(tab_scatter, df_paid, key="revenue")
+    
+    game_availabiltiy_pie(
+        tab_pie,
+        len(df_paid),
+        len(df_free),
+        len(df_unavailable),
+        len(df_unreleased)
+    )
+
+    col1.markdown("## Pintu ekspor terbesar industri game PC Indonesia")
+    col1.markdown('''
+    <p class="text-justify">
+        Developer Indonesia diestimasikan telah meraup sebanyak <strong>1,66 miliar rupiah</strong>. Angka ini didapat dengan mengalikan <strong>harga saat ini</strong> (tanpa diskon) dengan <strong>jumlah review positif</strong>. Mulai titik ini, <strong>hanya 132 game berbayar</strong> yang diperhitungkan.
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("## Mayoritas Game Indie")
+    col1.markdown('''
+    <p class="text-justify">
+        Sebesar <strong>1,58 miliar rupiah</strong> dari 1,66 miliar rupiah tadi didapat oleh game indie. Developer game indie <strong>tidak memiliki sponsor</strong> besar dalam pembuatannya, dan industri game di Indonesia sendiri terbilang kecil, tapi <strong>Steam memungkinkan mereka menjual ke seluruh dunia</strong>.
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("## Penjualan tertinggi 437,3 juta rupiah")
+    col1.markdown('''
+    <p class="text-justify">
+        Estimasi penjualan terbesar <strong>437,3 juta rupiah</strong> oleh <strong>Toge Productions</strong> dengan <strong>Coffee Talk</strong>, yang juga merupakan sebuah <strong>game indie</strong>.
+    </p>
+    ''', unsafe_allow_html=True)
+
+    col1, col2 = st.columns((4, 5))
+    tab_genre, tab_category, tab_platform = col2.tabs(["Genre", "Category", "Platform"])
+    steam_bar_horizontal_section(tab_genre, df_paid, y="genres", key="genres")
+    steam_bar_horizontal_section(tab_category, df_paid, y="categories", key="categories")
+    steam_bar_horizontal_section(tab_platform, df_paid, y="platforms", key="platforms")
+    col1.markdown("## Adventure adalah genre terfavorit")
+    col1.markdown('''
+    <p class="text-justify">
+        Game Indonesia di Steam didominasi oleh <strong>genre adventure, casual, dan action</strong>, tapi kalau <strong>dilihat dari popularitas, genre adventure jauh meninggalkan yang lain</strong>.
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("## Hampir semuanya single-player")
+    col1.markdown('''
+    <p class="text-justify">
+        Sebagian besar game Indonesia merupakan game <strong>single-player</strong> dengan fitur <strong>steam achievement, steam cloud, dan steam trading cards</strong>. 
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("## Windows.")
+    col1.markdown('''
+    <p class="text-justify">
+        <strong>Semua</strong> game Indonesia mendukung sistem operasi <strong>Windows</strong>. Hampir setengahnya juga mendukung <strong>MacOS</strong>, tapi hanya sedikit yang mendukung <strong>Linux</strong>. 
+    </p>
+    ''', unsafe_allow_html=True)
+    col2, col1 = st.columns((2, 1))
+    tab_lang, tab_voice = col2.tabs(["Bahasa", "Voice"])
+    steam_bar_horizontal_section(tab_lang, df_paid, y="supported_languages", key="lang")
+    steam_bar_horizontal_section(tab_voice, df_paid, y="supported_languages_voice", key="voice")
+    col1.markdown("## Bahasa Inggris. Bahasa Indonesia?")
+    col1.markdown('''
+    <p class="text-justify">
+        <strong>Semua</strong> game Indonesia mendukung bahasa <strong>Inggris</strong>, tapi game-game populer juga mendukung bahasa lain seperti bahasa <strong>Cina, Jepang, Spanyol, Rusia, Jerman, Portugis-Brazil, Prancis hingga Korea</strong>. Sayangnya, di Steam <strong>tidak ada tag Bahasa Indonesia</strong>, jadi kita tidak bisa mencari game berbahasa Indonesia melalui tag.
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("## Sebagian besar tanpa <i>voice</i>", unsafe_allow_html=True)
+    col1.markdown('''
+    <p class="text-justify">
+        Sebagian besar game Indonesia tidak mendukung voice, tapi dari yang mendukung voice, <strong>Bahasa Inggris paling banyak</strong>.
+    </p>
+    ''', unsafe_allow_html=True)
+
+    """
     labels = {
         None: "Tanpa pengelompokan",
         "developers": "Developer",
@@ -290,23 +345,62 @@ def app():
         steam_bar_horizontal_section(tab_bar, df_grouped)
     steam_histogram_section(tab_histogram, df_grouped)
     steam_scatter_section(tab_scatter, df_grouped)
+    """
     
-    st.markdown("Memang tidak sedikit game Indonesia yang telah berhasil di Steam. Meskipun begitu, tidak mudah untuk membuat game yang sukses. Dari 132 game Indonesia yang telah rilis dan masih ada di Steam, sekitar setengahnya diestimasikan hanya menjual sekitar satu juta rupiah (median 1.16 juta). Hanya 23 dari 132 game ini yang berhasil menjual lebih dari 10 juta rupiah. Padahal, waktu, tenaga, dan uang yang diperlukan untuk mengembangkan game cukup besar, sedangkan developer indie sulit mencari dana. Perlu mental yang kuat dan persiapan yang matang jika memang ingin berkarir di industri game Indonesia. Industri yang sudah sulit ini akan jadi jauh lebih sulit lagi jika Steam benar-benar diblokir.")
+    col1, col2 = st.columns((2, 3))
+    tab_histogram, tab_scatter = col2.tabs(["Histogram", "Scatter"])
+    steam_histogram_section(tab_histogram, df_paid, limit=10 * 10**6, key="bad")
+    steam_scatter_section(
+        tab_scatter,
+        df_paid,
+        y_options=["estimated_revenue", "estimated_revenue_positive"],
+        hlines={
+            "10 juta": 10 * 10**6, 
+            "Median": df_paid.median(), 
+            "Mean": df_paid.mean()
+        },
+        key="bad"
+    )
+    col1.markdown("## Sekarang, kabar buruknya", unsafe_allow_html=True)
+    col1.markdown('''
+    <p class="text-justify">
+        <strong>Dari 132 game</strong> Indonesia yang telah rilis dan masih ada di Steam, sekitar <strong>setengahnya</strong> diestimasikan hanya menjual sekitar <strong>satu juta rupiah ke bawah (median 1.16 juta)</strong>.
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("## Hanya 23 game yang sukses", unsafe_allow_html=True)
+    col1.markdown('''
+    <p class="text-justify">
+        <strong>Sebanyak 109 dari 132 game</strong> diestimasikan hanya berhasil <strong>menjual di bawah 10 juta rupiah</strong>. Padahal, waktu, tenaga, dan uang yang diperlukan untuk mengembangkan game cukup besar, sedangkan <strong>developer indie sulit mencari dana</strong>. Industri yang sudah sulit ini akan jadi jauh lebih sulit lagi jika Steam benar-benar diblokir.
+    </p>
+    ''', unsafe_allow_html=True)
 
-    st.markdown("## Bypass Blokir")
     col1, col2 = st.columns((1, 1))
-    col2.image("assets/Lah green tunnel.png")
+    col1.markdown("# Unblock")
+    col2.image("assets/img/Lah green tunnel.png")
     #col2.caption("hehe")
-    col1.markdown("Untungnya, akses ke Steam telah dibuka kembali per tanggal 2 Agustus 2022. Namun, jika lagi-lagi aturan PSE memblokir suatu layanan penting, kalian bisa gunakan salah satu aplikasi ini:")
+    col1.markdown('''
+    <p class="text-justify">
+        Untungnya, <strong>akses ke Steam telah dibuka kembali</strong> per tanggal <strong>2 Agustus 2022</strong>. Namun, jika lagi-lagi aturan PSE memblokir suatu layanan penting, Anda bisa gunakan salah satu aplikasi ini:
+    </p>
+    ''', unsafe_allow_html=True)
+    col1.markdown("- [Simple DNSCrypt (Windows)](https://simplednscrypt.org/)")
     col1.markdown("- [Green Tunnel (Windows, Linux, MacOS)](https://github.com/SadeghHayeri/GreenTunnel)")
     col1.markdown("- [DPITunnel v2 (Linux & Android, perlu root)](https://github.com/zhenyolka/DPITunnel-android)")
     col1.markdown("- [PowerTunnel (Windows & Android)](https://github.com/krlvm/PowerTunnel)")
-    col1.markdown("Meskipun ada cara bypass pemblokiran, ini hanya solusi sementara. Jika benar-benar diblokir permanen, suatu layanan akan menjadi ilegal. Ini berarti meskipun kita bisa bypass blokir, pemberi layanan tidak dapat mendukung Indonesia. Contohnya, kalian akan kesulitan untuk topup dengan rupiah.")
+    col1.markdown('''
+    <p class="text-justify">
+        Meskipun ada cara bypass pemblokiran, ini <strong>hanya solusi sementara</strong>. Jika benar-benar diblokir permanen, suatu layanan akan menjadi <strong>ilegal</strong>. Ini berarti meskipun kita bisa bypass blokir, pemberi layanan <strong>tidak dapat mendukung Indonesia</strong>. Contohnya, kalian akan <strong>kesulitan topup</strong> dengan rupiah.
+    </p>
+    ''', unsafe_allow_html=True)
 
-    st.markdown("## Referensi")
+    st.markdown("# Eksplorasi")
+    st.markdown("Ada yang ingin kalian ketahui lebih lanjut? Merasa ada yang saya lewatkan? Ingin lihat grafik dengan ukuran lebih besar? Coba klik tombol di pojok kiri atas.")
+
+    st.markdown("# Referensi")
     st.markdown("- [Games from Indonesia (Part 2)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/62128)")
     st.markdown("- [Games from Indonesia (Part 1)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/37980)")
     st.markdown("- [Daftar Game Buatan Developer Indonesia di Steam](https://steamcommunity.com/groups/indosteamcommunity/discussions/1/1486613649676936297?ctp=14)")
+    st.markdown("- [Steam](https://en.wikipedia.org/wiki/Steam_(service))")
     st.markdown("- [Akses Steam sudah dibuka kembali per 2 Agustus 2022](https://gamerwk.com/steam-sudah-bisa-diakses-di-indonesia-kominfo-lepas-blokir/)")
     st.markdown("- [Komfino blokir Steam dan Paypal hingga menjadi trending Twitter](https://www.detik.com/bali/berita/d-6207923/steam-paypal-diblokir-tagar-blokirkominfo-trending-twitter)")
     st.markdown("- [Kominfo sudah kirim surat teguran 23 Juli 2022](https://tekno.kompas.com/read/2022/07/29/16450017/batas-pendaftaran-pse-nanti-malam-platform-digital-yang-bandel-akan-diblokir)")

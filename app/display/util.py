@@ -2,6 +2,10 @@ import pandas as pd
 import streamlit as st
 from ..functions.util import sorted_keys
 
+def fig_defaults(fig):
+    fig.update_layout(
+        margin=dict(l=20, r=20, t=20, b=20)
+    )
 
 def selectbox_2(container, label, options, key="default", default=None):
     option_keys = sorted_keys(options)

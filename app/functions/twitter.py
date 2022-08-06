@@ -3,7 +3,7 @@ import pandas as pd
 from ..global_data import Constants
 import requests
 
-DEFAULT_NEUTRAL_BINS = (-0.1, 0.1)
+DEFAULT_NEUTRAL_BINS = (-0.05, 0.05)
 DEFAULT_MIN_SUBJECTIVITY = 0.5
 
 API = "recent"
@@ -240,6 +240,7 @@ def merge_data(all_data, queries, dates):
     return merged
     
 
+@st.cache()
 def get_tweet(id, fallback=None):
     try:
         api = 'https://publish.twitter.com/oembed?url=https://twitter.com/twitter/status/'+str(id)

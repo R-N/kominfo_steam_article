@@ -8,8 +8,50 @@ from ..display.twitter import tweet_volume_bar_stack, tweet_polarity_line, tweet
 from ..display.util import selectbox_2, multiselect_2
 from numerize import numerize
 
+
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
+def sentiment_section(container, aggregate, query="kominfo", volume="volume", key="sentiment"):
+    con = container.container()
+    with container.expander("Opsi"):
+        query = selectbox_2(
+            st, 
+            "Query", 
+            {k:k for k in QUERIES if k not in EXCLUDE_QUERIES}, 
+            default=query,
+            key=key
+        )
+        volume = selectbox_2(st, "Volume", {
+            "volume": "Dikali like/rt",
+            "count": "Hanya jumlah"
+        }, default=volume, key=key)
+        labels = POLARITY_LABEL_VOLUME_COLS if volume=="volume" else POLARITY_LABEL_COLS
+
+    df_q = filter_query(aggregate, query)
+    tweet_volume_bar_stack(con, df_q, labels)
+
+
+
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
+def volume_section(container, aggregate, query="kominfo", count="count", key="volume"):
+    con = container.container()
+    with container.expander("Opsi"):
+        query = selectbox_2(
+            st, 
+            "Query", 
+            {k:k for k in QUERIES if k not in EXCLUDE_QUERIES}, 
+            default=query,
+            key=key
+        )
+        count = selectbox_2(st, "Jumlah", {
+            "count": "Hanya tweet original",
+            "count_rt": "Tweet + Retweet",
+            "count_rt_quote": "Tweet + Retweet + Quote"
+        }, default=count, key=key)
+    df_q = filter_query(aggregate, query)
+    tweet_volume_bar_stack(con, df_q, count)
+
+
 def aggregate_section(aggregate):
-    
 
     col1, col2 = st.columns(2)
     query = selectbox_2(
@@ -69,32 +111,70 @@ def aggregate_section(aggregate):
     )
     tweet_polarity_line_2(st, df_q)
 
-def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES, dates=DATES, sorting="engagement", limit=10):
+
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
+def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES, dates=DATES, sorting="engagement", limit=10, show=1):
     con1 = container.container()
     con2 = container.container()
-    if container.checkbox("Filter"):
+    with container.expander("Opsi"):
+        col2, col3, col4, col5 = st.columns(4)
         sentiment = selectbox_2(
-        container,
-        "Sentimen",
-        {
-            k: LABELS[k]
-            for k in [
-                "positive",
-                "neutral",
-                "negative",
-                "all"
-            ]
-        },
-        default=sentiment
-    )
+            col2,
+            "Sentimen",
+            {
+                k: LABELS[k]
+                for k in [
+                    "positive",
+                    "neutral",
+                    "negative",
+                    "all"
+                ]
+            },
+            default=sentiment
+        )
+        sorting = selectbox_2(
+            col3,
+            "Sort by",
+            {
+                k: LABELS[k]
+                for k in [
+                    "like_count",
+                    "reply_count",
+                    "retweet_count",
+                    "quote_count",
+                    "engagement"
+                ]
+            },
+            default=sorting
+        )
+        limit = col4.number_input(
+            "Limit",
+            min_value=1,
+            max_value=100,
+            value=limit,
+            step=1
+        )
+        limit = int(limit)
+        limit = max(1, min(100, limit))
+        
+        show = col5.number_input(
+            "Show",
+            min_value=1,
+            max_value=limit,
+            value=show,
+            step=1
+        )
+        show = int(show)
+        show = max(1, min(limit, show))
+
         queries = multiselect_2(
-            container, 
+            st, 
             "Query", 
             {k:k for k in queries}, 
             default=queries
         )
         dates = multiselect_2(
-            container, 
+            st, 
             "Tanggal", 
             {k:k for k in dates}, 
             default=dates
@@ -102,36 +182,13 @@ def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES,
     merged = merge_data(all_data, queries, dates)
     if sentiment != "all":
         merged = merged[merged["sentiment_label"]==LABELS[sentiment]]
-    col1, col2, col3 = con1.columns(3)
-    sorting = selectbox_2(
-        col2,
-        "Sort by",
-        {
-            k: LABELS[k]
-            for k in [
-                "like_count",
-                "reply_count",
-                "retweet_count",
-                "quote_count",
-                "engagement"
-            ]
-        },
-        default=sorting
-    )
-    limit = col3.number_input(
-        "Limit",
-        min_value=1,
-        max_value=100,
-        value=limit,
-        step=1
-    )
-    limit = max(0, min(100, limit))
+
     merged = merged.sort_values(sorting, ascending=False).iloc[:int(limit)].reset_index()
     #st.dataframe(merged)
     tweets = merged.to_dict('records')
     #st.write(tweets)
-    
     tweet_count = len(tweets)
+    """
     index = col1.number_input(
         "Tweet #",
         min_value=1,
@@ -145,7 +202,14 @@ def tweet_section(container, all_data, sentiment="all", queries=INCLUDE_QUERIES,
     
     tweet = tweets[index]
     display_tweet(con2, tweet, "Top Tweet #{0}".format(index+1))
-    
+    """
+    for i in range (0, show):
+        display_tweet(con2, tweets[i], "Top Tweet #{0}".format(i+1))
+    if tweet_count > 0:
+        with con2.expander("Lihat tweet lainnya"):
+            for i in range(show, tweet_count):
+                display_tweet(st, tweets[i], "Top Tweet #{0}".format(i+1))
+
 
 def app():
 
