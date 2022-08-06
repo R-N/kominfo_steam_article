@@ -40,7 +40,7 @@ def app():
     df_paid, df_free, df_unavailable, df_unreleased = steam_split_by_availabiltiy(df)
 
     st.title("Steam, Pintu Ekspor Terbesar Industri Game PC Indonesia yang Ditutup oleh Kominfo")
-    st.subheader("Muhammad Rizqi Nur, 2022")
+    st.write('<span class="h3">Muhammad Rizqi Nur, 2022</span>', unsafe_allow_html=True)
 
     col1, col2 = st.columns((1, 1))
     col1.image("assets/img/blokirkominfo.png")
