@@ -3,146 +3,19 @@ import pandas as pd
 from ..functions.twitter import POLARITY_LABEL_VOLUME_COLS as TWITTER_POLARITY_LABEL_VOLUME_COLS, QUERIES as TWITTER_QUERIES, EXCLUDE_QUERIES as TWITTER_EXCLUDE_QUERIES, POLARITY_LABEL_COLS as TWITTER_POLARITY_LABEL_COLS, LABELS as TWITTER_LABELS, INCLUDE_QUERIES as TWITTER_INCLUDE_QUERIES, DATES as TWITTER_DATES
 from ..functions.twitter import load_all as twitter_load_all, aggregate_data as twitter_aggregate_data, filter_query as twitter_filter_query, merge_data as twitter_merge_data
 from ..display.twitter import tweet_volume_bar_stack, tweet_slides, display_tweet
-from ..display.steam import game_bar_horizontal, game_scatter, show_metrics as steam_show_metrics, game_histogram, limit_df as steam_limit_df, game_availabiltiy_pie, show_metrics_table as steam_show_metrics_table
+from ..display.steam import game_bar_horizontal, game_scatter, show_metrics as steam_show_metrics, game_histogram, limit_df as steam_limit_df, game_availabiltiy_pie, show_metrics_table as steam_show_metrics_table, groupby_tag_2 as steam_groupby_tag_2
 from ..global_data import Constants
 from ..functions.steam import LABELS as STEAM_LABELS
 from ..functions.gtrends import LABELS as GTRENDS_LABELS, DEFAULT_COLS_1 as GTRENDS_DEFAULT_COLS_1
 from ..functions.gtrends import load_df as gtrends_load_df
 from ..display.gtrends import trend_line
 from ..display.util import selectbox_2, multiselect_2
-from ..functions.steam import split_by_availability as steam_split_by_availabiltiy, init_df as steam_init_df, groupby_tag_2 as steam_groupby_tag_2
+from ..functions.steam import split_by_availability as steam_split_by_availabiltiy, init_df as steam_init_df
 from ..pages.twitter import tweet_section, sentiment_section as tweet_sentiment_section, volume_section as tweet_volume_section
 from ..pages.gtrends import gtrends_section
+from ..pages.steam import histogram_section as steam_histogram_section, scatter_section as steam_scatter_section, bar_horizontal_section as steam_bar_horizontal_section
 import json
 
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
-def steam_histogram_section(
-    container, 
-    df, 
-    col="estimated_revenue_positive", 
-    limit=None,
-    show_metrics=True, 
-    compact=True,
-    nbins=5,
-    height=360,
-    key="default"
-):
-    con = container.container() if compact else container
-    with container.expander("Opsi"):
-        col = selectbox_2(st, "x", {
-            x: STEAM_LABELS[x] for x in [
-                "price_initial",
-                "total_reviews",
-                "total_positive",
-                "estimated_revenue",
-                "estimated_revenue_positive"
-            ] if x in df.columns
-        }, default=col, key=key)
-        df, limit = steam_limit_df(
-            st, 
-            df, 
-            col, 
-            default=limit,
-            compact=compact,
-            key=key
-        )
-    if not compact:
-        con = container.container()
-    if show_metrics and not compact:
-        steam_show_metrics(con, df[col], 1, compact=compact)
-    game_histogram(con, df, col, nbins=nbins, height=height)
-    if show_metrics and compact:
-        steam_show_metrics_table(con, df[col], 1)
-
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
-def steam_scatter_section(
-    container, df, 
-    x="price_initial", 
-    y="total_positive",
-    zs=[
-        "estimated_revenue",
-        "estimated_revenue_positive",
-        "review_summary",
-        "developers",
-        "publishers"
-    ],
-    x_options=[
-        "price_initial",
-        "total_reviews",
-        "total_positive",
-        "release_date"
-    ],
-    y_options=[
-        "price_initial",
-        "total_reviews",
-        "total_positive",
-        "release_date",
-        "estimated_revenue",
-        "estimated_revenue_positive",
-    ],
-    z_options=[
-        "total_reviews",
-        "total_positive",
-        "estimated_revenue",
-        "estimated_revenue_positive",
-        "developers",
-        "publishers"
-    ],
-    hlines=[],
-    compact=True,
-    key="default"
-):
-    con = container.container() if compact else container
-    with container.expander("Opsi"):
-        col1, col2 = st.columns(2) if not compact else ([st] * 2)
-        x = selectbox_2(col1, "x", {
-            x: STEAM_LABELS[x] for x in x_options if x in df.columns
-        }, default=x, key=key)
-        y = selectbox_2(col2, "y", {
-            x: STEAM_LABELS[x] for x in y_options if x in df.columns
-        }, default=y, key=key)
-        zs = multiselect_2(st, "z", {
-            x: STEAM_LABELS[x] for x in z_options if x in df.columns
-        }, default=zs, key=key)
-
-    game_scatter(con, df, x, y, zs, hlines=hlines)
-
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
-def steam_bar_horizontal_section(
-    container, 
-    df, 
-    x="total_positive",
-    y="genres",
-    compact=True,
-    key="default"
-):
-    con = container.container() if compact else container
-    with container.expander("Opsi", expanded=not compact):
-        col1, col2 = st.columns(2) if not compact else ([st] * 2)
-        x = selectbox_2(col1, "x", {
-            x: STEAM_LABELS[x] for x in [
-                "price_initial",
-                "total_reviews",
-                "total_positive",
-                "estimated_revenue",
-                "estimated_revenue_positive",
-                "count"
-            ] if x in df.columns
-        }, default=x, key=key)
-        y = selectbox_2(col2, "y", {
-            x: STEAM_LABELS[x] for x in [
-                "genres",
-                "categories",
-                "platforms",
-                "supported_languages",
-                "supported_languages_voice"
-            ] if x in df.columns
-        }, default=y, key=key)
-        agg_cb = st.checkbox("Agg", value=True, key=key)
-    game_bar_horizontal(
-        con, df, x, y, 
-        agg=agg_cb
-    )
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def load_data_twitter():
@@ -261,8 +134,8 @@ def app():
     col2, col1 = st.columns((1, 1))
     
     tab_histogram, tab_scatter, tab_pie = col2.tabs(["Histogram", "Scatter Plot", "Ketersediaan Game"])
-    steam_histogram_section(tab_histogram, df_paid, key="revenue")
-    steam_scatter_section(tab_scatter, df_paid, key="revenue")
+    steam_histogram_section(tab_histogram, df_paid, compact=True, key="revenue")
+    steam_scatter_section(tab_scatter, df_paid, compact=True, key="revenue")
     
     game_availabiltiy_pie(
         tab_pie,
@@ -293,9 +166,27 @@ def app():
 
     col1, col2 = st.columns((4, 5))
     tab_genre, tab_category, tab_platform = col2.tabs(["Genre", "Category", "Platform"])
-    steam_bar_horizontal_section(tab_genre, df_paid, y="genres", key="genres")
-    steam_bar_horizontal_section(tab_category, df_paid, y="categories", key="categories")
-    steam_bar_horizontal_section(tab_platform, df_paid, y="platforms", key="platforms")
+    steam_bar_horizontal_section(
+        tab_genre, 
+        df_paid, 
+        y="genres", 
+        compact=True,
+        key="genres"
+    )
+    steam_bar_horizontal_section(
+        tab_category, 
+        df_paid, 
+        y="categories", 
+        compact=True,
+        key="categories"
+    )
+    steam_bar_horizontal_section(
+        tab_platform, 
+        df_paid, 
+        y="platforms", 
+        compact=True,
+        key="platforms"
+    )
     col1.markdown("## Adventure adalah genre terfavorit")
     col1.markdown('''
     <p class="text-justify">
@@ -316,8 +207,20 @@ def app():
     ''', unsafe_allow_html=True)
     col2, col1 = st.columns((2, 1))
     tab_lang, tab_voice = col2.tabs(["Bahasa", "Voice"])
-    steam_bar_horizontal_section(tab_lang, df_paid, y="supported_languages", key="lang")
-    steam_bar_horizontal_section(tab_voice, df_paid, y="supported_languages_voice", key="voice")
+    steam_bar_horizontal_section(
+        tab_lang, 
+        df_paid, 
+        y="supported_languages", 
+        compact=True,
+        key="lang"
+    )
+    steam_bar_horizontal_section(
+        tab_voice, 
+        df_paid, 
+        y="supported_languages_voice", 
+        compact=True,
+        key="voice"
+    )
     col1.markdown("## Bahasa Inggris. Bahasa Indonesia?")
     col1.markdown('''
     <p class="text-justify">
@@ -349,7 +252,13 @@ def app():
     
     col1, col2 = st.columns((2, 3))
     tab_histogram, tab_scatter = col2.tabs(["Histogram", "Scatter"])
-    steam_histogram_section(tab_histogram, df_paid, limit=10 * 10**6, key="bad")
+    steam_histogram_section(
+        tab_histogram, 
+        df_paid, 
+        limit=10 * 10**6,
+        compact=True, 
+        key="bad"
+    )
     steam_scatter_section(
         tab_scatter,
         df_paid,
@@ -359,6 +268,7 @@ def app():
             "Median": df_paid.median(), 
             "Mean": df_paid.mean()
         },
+        compact=True,
         key="bad"
     )
     col1.markdown("## Sekarang, kabar buruknya", unsafe_allow_html=True)
@@ -397,14 +307,15 @@ def app():
     st.markdown("Ada yang ingin kalian ketahui lebih lanjut? Merasa ada yang saya lewatkan? Ingin lihat grafik dengan ukuran lebih besar? Coba klik tombol di pojok kiri atas.")
 
     st.markdown("# Referensi")
-    st.markdown("- [Games from Indonesia (Part 2)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/62128)")
-    st.markdown("- [Games from Indonesia (Part 1)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/37980)")
-    st.markdown("- [Daftar Game Buatan Developer Indonesia di Steam](https://steamcommunity.com/groups/indosteamcommunity/discussions/1/1486613649676936297?ctp=14)")
-    st.markdown("- [Steam](https://en.wikipedia.org/wiki/Steam_(service))")
-    st.markdown("- [Akses Steam sudah dibuka kembali per 2 Agustus 2022](https://gamerwk.com/steam-sudah-bisa-diakses-di-indonesia-kominfo-lepas-blokir/)")
-    st.markdown("- [Komfino blokir Steam dan Paypal hingga menjadi trending Twitter](https://www.detik.com/bali/berita/d-6207923/steam-paypal-diblokir-tagar-blokirkominfo-trending-twitter)")
-    st.markdown("- [Kominfo sudah kirim surat teguran 23 Juli 2022](https://tekno.kompas.com/read/2022/07/29/16450017/batas-pendaftaran-pse-nanti-malam-platform-digital-yang-bandel-akan-diblokir)")
-    st.markdown("- [Whatsapp, FB, Instagram sudah daftar PSE; tidak jadi diblokir](https://www.cnbcindonesia.com/tech/20220720073311-37-356882/whatsapp-fb-instagram-sudah-daftar-kominfo-ga-jadi-diblokir)")
-    st.markdown("- [Isu pemblokiran sebelumnya untuk Google hingga Whatsapp](https://www.cnnindonesia.com/teknologi/20220622152237-192-812237/akses-google-hingga-whatsapp-bisa-diputus-jika-tak-daftar-pse-kominfo)")
-    st.markdown("- [Pendaftaran PSE sudah dibuka sejak 2 Juni 2021](https://aptika.kominfo.go.id/2021/05/ketentuan-pse-lingkup-privat-untuk-lindungi-negara-dan-masyarakat/)")
-    st.markdown("- [Aturan PSE (2020) didasarkan pada UU ITE](https://aptika.kominfo.go.id/2020/01/pendaftaran-penyelenggara-sistem-elektronik-pse/)")
+    col2, col1 = st.columns(2)
+    col1.markdown("- [Games from Indonesia (Part 2)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/62128)")
+    col1.markdown("- [Games from Indonesia (Part 1)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/37980)")
+    col1.markdown("- [Daftar Game Buatan Developer Indonesia di Steam](https://steamcommunity.com/groups/indosteamcommunity/discussions/1/1486613649676936297?ctp=14)")
+    col1.markdown("- [Steam wiki](https://en.wikipedia.org/wiki/Steam_(service))")
+    col2.markdown("- [Akses Steam sudah dibuka kembali per 2 Agustus 2022](https://gamerwk.com/steam-sudah-bisa-diakses-di-indonesia-kominfo-lepas-blokir/)")
+    col2.markdown("- [Komfino blokir Steam dan Paypal hingga menjadi trending Twitter](https://www.detik.com/bali/berita/d-6207923/steam-paypal-diblokir-tagar-blokirkominfo-trending-twitter)")
+    col2.markdown("- [Kominfo sudah kirim surat teguran 23 Juli 2022](https://tekno.kompas.com/read/2022/07/29/16450017/batas-pendaftaran-pse-nanti-malam-platform-digital-yang-bandel-akan-diblokir)")
+    col2.markdown("- [Whatsapp, FB, Instagram sudah daftar PSE; tidak jadi diblokir](https://www.cnbcindonesia.com/tech/20220720073311-37-356882/whatsapp-fb-instagram-sudah-daftar-kominfo-ga-jadi-diblokir)")
+    col2.markdown("- [Isu pemblokiran sebelumnya untuk Google hingga Whatsapp](https://www.cnnindonesia.com/teknologi/20220622152237-192-812237/akses-google-hingga-whatsapp-bisa-diputus-jika-tak-daftar-pse-kominfo)")
+    col2.markdown("- [Pendaftaran PSE sudah dibuka sejak 2 Juni 2021](https://aptika.kominfo.go.id/2021/05/ketentuan-pse-lingkup-privat-untuk-lindungi-negara-dan-masyarakat/)")
+    col2.markdown("- [Aturan PSE (2020) didasarkan pada UU ITE](https://aptika.kominfo.go.id/2020/01/pendaftaran-penyelenggara-sistem-elektronik-pse/)")

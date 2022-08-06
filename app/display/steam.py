@@ -9,6 +9,7 @@ from pandas.api.types import is_numeric_dtype
 from ..functions.util import sorted_keys, groupby_tag, group_others, join_tag, MySet
 import functools
 from ..functions.steam import LABELS
+from ..functions.steam import rebuild_review
 from ..display.util import fig_defaults
 
 def show_metrics(container, series, metric_type=1, compact=False):
@@ -150,7 +151,6 @@ def game_bar_horizontal(container, df, x, y, y_list=True, hover_data=[], aggfunc
             )).sort_values(x, ascending=True)
             sorting = df
             y = None
-            #sorting = aggfunc(groupby_tag(df[[x, y]], y))
         else:
             df = join_tag(
                 df,
@@ -284,6 +284,11 @@ def limit_df(
         condition=lambda x: isinstance(x, (int, float)), 
         reverse=True
     ), "custom"]
+    count = len(labels)
+    if count == 0:
+        return default
+    elif count == 1:
+        return labels[0]
     try:
         index = labels.index(default)
     except ValueError:
@@ -312,3 +317,43 @@ def limit_df(
     df = df_paid[df_paid[col] < limit] if limit else df_paid
 
     return df, limit
+
+
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
+def groupby_tag_2(
+    container,
+    df, 
+    labels, 
+    default=None,
+    aggfunc=lambda x: x.sum(),
+    key="default"
+):
+    labels_list = [
+        None,
+        *sorted_keys(labels, condition=lambda x: isinstance(x, str))
+    ]
+    count = len(labels_list)
+    if count == 0:
+        return default
+    elif count == 1:
+        return labels_list[0]
+    try:
+        index = labels_list.index(default)
+    except ValueError:
+        index = 0
+    grouping = container.selectbox(
+        "Pengelompokan",
+        labels_list,
+        format_func=lambda x: labels[x],
+        index=index,
+        key=key
+    )
+
+    if grouping:
+        df = df_g = groupby_tag(df, grouping)
+        df = aggfunc(df)
+        df["release_date"] = df_g["release_date"].min()
+        rebuild_review(df)
+    else:
+        df = df.set_index("name")
+    return df, grouping

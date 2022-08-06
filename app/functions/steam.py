@@ -80,26 +80,6 @@ def split_by_availability(df):
 
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
-def groupby_tag_2(df, labels, aggfunc=lambda x: x.sum()):
-    grouping = st.selectbox(
-        "Pengelompokan",
-        [
-            None,
-            *sorted_keys(labels, condition=lambda x: isinstance(x, str))
-        ],
-        format_func=lambda x: labels[x],
-        index=0
-    )
-
-    if grouping:
-        df = df_g = groupby_tag(df, grouping)
-        df = aggfunc(df)
-        df["release_date"] = df_g["release_date"].min()
-        rebuild_review(df)
-    else:
-        df = df.set_index("name")
-    return df, grouping
-st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def rebuild_review(df):
     df["positive_rate"] = df["total_positive"] / df["total_reviews"] * 100
     df["review_score_desc"] = df.apply(lambda x: 

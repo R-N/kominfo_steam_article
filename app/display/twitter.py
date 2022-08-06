@@ -61,20 +61,5 @@ def tweet_slides(con, tweets, key="default"):
         step=1
     )
     index = int(index)
-    """
-    var = "tweet_slides_{0}".format(key)
-    params = st.experimental_get_query_params()
-    if var in st.session_state:
-        index = int(st.session_state[var])
-    else:
-        st.session_state[var] = index
-    """
     tweet = tweets[index]
     display_tweet(con, tweet, "Top Tweet #{0}".format(index+1))
-    """
-    col1, col2, col3 = con.columns((1, 10, 1))
-    if col1.button("<"):
-        st.session_state[var] = max(0, min(max_index, index-1))
-    if col3.button(">"):
-        st.session_state[var] = max(0, min(max_index, index+1))
-    """

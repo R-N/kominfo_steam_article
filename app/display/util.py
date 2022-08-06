@@ -9,6 +9,11 @@ def fig_defaults(fig):
 
 def selectbox_2(container, label, options, key="default", default=None):
     option_keys = sorted_keys(options)
+    count = len(option_keys)
+    if count == 0:
+        return default
+    elif count == 1:
+        return option_keys[0]
     try:
         index = option_keys.index(default)
     except ValueError:
@@ -24,6 +29,9 @@ def selectbox_2(container, label, options, key="default", default=None):
 
 def multiselect_2(container, label, options, key="default", default=None):
     option_keys = sorted_keys(options)
+    count = len(option_keys)
+    if count == 0:
+        return []
     if isinstance(default, (list, tuple)):
         default = [d for d in default if d in options]
     return container.multiselect(
