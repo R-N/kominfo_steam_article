@@ -10,7 +10,7 @@ class Constants:
     gtrends_path = data_folder + "gtrends.xlsx"
     counts_path = data_folder + "counts_recent_2022-07-25T17_00_00Z_2022-07-31T17_00_00Z.xlsx"
     trends_path = data_folder + "trends_Indonesia_2022-07-28T15_13_55Z_2022-07-31T05_51_56Z.xlsx"
-    sentiment_folder = data_folder + "sentiment_csv/"
+    sentiment_folder = data_folder + "sentiment_2_csv/"
     container_type = st.delta_generator.DeltaGenerator
 
 @st.cache(allow_output_mutation=True)

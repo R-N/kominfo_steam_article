@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from ..global_data import Constants
-from ..functions.twitter import DEFAULT_MIN_SUBJECTIVITY, POLARITY_LABEL_COLS, POLARITY_LABEL_VOLUME_COLS, QUERIES, DATES, EXCLUDE_QUERIES, DEFAULT_NEUTRAL_BINS, DEFAULT_MIN_SUBJECTIVITY, LABELS, INCLUDE_QUERIES
+from ..functions.twitter import DEFAULT_MIN_SENTIMENT_SCORE, POLARITY_LABEL_COLS, POLARITY_LABEL_VOLUME_COLS, QUERIES, DATES, EXCLUDE_QUERIES, LABELS, INCLUDE_QUERIES
 from ..functions.twitter import load_all, aggregate_data, filter_query, get_tweet, merge_data
 from ..display.twitter import tweet_volume_bar_stack, tweet_polarity_line, tweet_polarity_line_2, display_tweet, tweet_slides, tweet_volume_line
 from ..display.util import selectbox_2, multiselect_2
@@ -147,12 +147,13 @@ def aggregate_section(container, aggregate):
         container,
         aggregate
     )
-
+    """
     container.markdown("## Tweet Polarity")
     polarity_section(
         container,
         aggregate
     )
+    """
 
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})
@@ -245,7 +246,7 @@ def tweet_section(
         )
     merged = merge_data(all_data, queries, dates)
     if sentiment != "all":
-        merged = merged[merged["sentiment_label"]==LABELS[sentiment]]
+        merged = merged[merged["sentiment_label"]==sentiment]
 
     merged = merged.sort_values(sorting, ascending=False).iloc[:int(limit)].reset_index()
     #st.dataframe(merged)
@@ -263,30 +264,15 @@ def tweet_section(
 
 def app():
 
-    col1, col2, col3 = st.sidebar.columns(3)
-    neutral_bin_min = st.sidebar.number_input(
-        "Minimum Sentimen Netral",
-        min_value=-1.0,
-        max_value=0.0,
-        value=DEFAULT_NEUTRAL_BINS[0],
-        step=0.1
-    )
-    neutral_bin_max = st.sidebar.number_input(
-        "Maximum Sentimen Netral",
+    min_sentiment_score = st.sidebar.number_input(
+        "Minimum Sentiment Confidence (untuk grafik agregat)",
         min_value=0.0,
-        max_value=1.0,
-        value=DEFAULT_NEUTRAL_BINS[1],
-        step=0.1
+        max_value=100.0,
+        value=DEFAULT_MIN_SENTIMENT_SCORE,
+        step=10.0
     )
-    min_subjectivity = st.sidebar.number_input(
-        "Minimum Subjectivity",
-        min_value=0.0,
-        max_value=1.0,
-        value=DEFAULT_MIN_SUBJECTIVITY,
-        step=0.1
-    )
-    all_data = load_all(sentiment_bins=(neutral_bin_min, neutral_bin_max))
-    aggregate = aggregate_data(all_data, min_subjectivity=min_subjectivity)
+    all_data = load_all()
+    aggregate = aggregate_data(all_data, min_sentiment_score=min_sentiment_score/100.0)
 
     st.markdown("# Agregat")
     aggregate_section(st, aggregate)

@@ -41,6 +41,7 @@ def app():
 
     st.title("Steam, Pintu Ekspor Terbesar Industri Game PC Indonesia yang Ditutup oleh Kominfo")
     st.write('<span class="h3">Muhammad Rizqi Nur, 2022</span>', unsafe_allow_html=True)
+    st.markdown("### [Versi Sebelumnya (TextBlob)](https://r-n-kominfo-steam-article-app-v1-1-y6k8hj.streamlitapp.com/)", unsafe_allow_html=True)
 
     col1, col2 = st.columns((1, 1))
     col1.image("assets/img/blokirkominfo.png")
@@ -51,9 +52,9 @@ def app():
     <p class="text-justify">
         <span class="">H</span>ari <strong>Sabtu 30 Juli 2022</strong> lalu, terkait aturan PSE, <strong>Kominfo telah memblokir</strong> beberapa layanan besar dari luar negeri, salah satunya <strong>Steam</strong>. 
         Pemblokiran ini menghebohkan media internet Indonesia dan langsung menjadi <strong>trending twitter</strong>. 
-        Sebagian besar tweet masih positif, tapi jumlah <strong>tweet negatif</strong> juga sangat banyak. 
+        <strong>Mayoritas</strong> sentimen <strong>tweet negatif</strong>, sedangkan yang positif sangat sedikit. 
         Bagaimana tidak, setelah melalui 5 hari kerja yang panjang, orang-orang Indonesia ternyata tidak dapat refreshing dengan game yang telah dibeli; semua karena suatu regulasi baru dari pemerintah. 
-        Bukan cuma tempat membeli game, Steam juga adalah <strong>pintu ekspor terbesar industri game Indonesia</strong>. 
+        Bukan cuma tempat membeli game, Steam juga adalah <strong>pintu ekspor terbesar industri game PC Indonesia</strong>. 
         Developer Indonesia diestimasikan telah meraup sebanyak <strong>1,66 miliar</strong> rupiah, dimana <strong>1,58 miliar</strong> rupiah di antaranya berasal <strong>dari game indie</strong>. 
         Developer game indie <strong>tidak memiliki sponsor</strong> besar dalam pembuatannya, dan industri game di Indonesia sendiri terbilang kecil, tapi <strong>Steam memungkinkan mereka menjual ke seluruh dunia</strong>.
         Sepenting itu lah Steam bagi industri dan pasar game Indonesia. Untungnya, per tanggal <strong>2 Agustus 2022</strong>, akses <strong>Steam telah dibuka</strong> kembali.
@@ -78,13 +79,13 @@ def app():
     col1.markdown("## 41 ribu tweet dalam sehari")
     col1.markdown('''
     <p class="text-justify">
-        Pada tanggal pemblokiran, yaitu <strong>30 Juli 2022</strong>, tweet mengenai kominfo memuncak hingga <strong>41.646</strong> tweet publik. Jumlah ini <strong>tanpa menghitung retweet dan quote</strong>.
+        Pada tanggal pemblokiran, yaitu <strong>30 Juli 2022</strong>, tweet mengenai kominfo memuncak hingga <strong>41.645</strong> tweet publik. Jumlah ini <strong>tanpa menghitung retweet dan quote</strong>.
     </p>
     ''', unsafe_allow_html=True)
-    col1.markdown("## Banyak sentimen negatif, tapi sebagian besar masih positif")
+    col1.markdown("## Mayoritas sentimen negatif, sangat sedikit yang positif")
     col1.markdown('''
     <p class="text-justify">
-        Analisis sentimen dilakukan menggunakan <strong>TextBlob</strong> setelah menerjemahkan tweet ke bahasa Inggris menggunakan <strong>Google Translate</strong>. Tweet dianggap <strong>netral</strong> jika memiliki polaritas dalam range ±0.05. Tiap <strong>tweet diboboti</strong> sebanyak max(like, retweet)+1.
+        Analisis sentimen dilakukan menggunakan <strong>IndoBERT</strong> untuk tweet berbahasa Indonesia dan <strong>BERTsent</strong> untuk tweet berbahasa Inggris. Tiap <strong>tweet diboboti</strong> sebanyak max(like, retweet)+1.
     </p>
     ''', unsafe_allow_html=True)
     col1.markdown("## Pencarian DNS meningkat drastis, tapi VPN tidak")
@@ -308,6 +309,8 @@ def app():
 
     st.markdown("# Referensi")
     col2, col1 = st.columns(2)
+    col1.markdown("- [IndoBERT Sentiment](https://huggingface.co/mdhugol/indonesia-bert-sentiment-classification)")
+    col1.markdown("- [BERTsent Sentiment](https://huggingface.co/rabindralamsal/BERTsent)")
     col1.markdown("- [Games from Indonesia (Part 2)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/62128)")
     col1.markdown("- [Games from Indonesia (Part 1)](https://store.steampowered.com/curator/25278687-Virtual-SEA-Games-from-SEAsia/list/37980)")
     col1.markdown("- [Daftar Game Buatan Developer Indonesia di Steam](https://steamcommunity.com/groups/indosteamcommunity/discussions/1/1486613649676936297?ctp=14)")

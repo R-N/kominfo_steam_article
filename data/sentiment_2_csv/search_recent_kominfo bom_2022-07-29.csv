@@ -1,0 +1,2 @@
+id,lang,created_at,author_id,text,conversation_id,retweet_count,reply_count,like_count,quote_count,clean_text,sentiment_label,sentiment_score
+1.553056106393801e+18,id,2022-07-29 16:33:24,2947779043,@spionbekas Kantor kominfo dmna? Mau ku plant bom,1.553055339612094e+18,0,1,0,0,@USER kantor kominfo dmna? mau ku plant bom,negative,0.6183279752731323

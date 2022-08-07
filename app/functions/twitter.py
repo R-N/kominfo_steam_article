@@ -3,8 +3,7 @@ import pandas as pd
 from ..global_data import Constants
 import requests
 
-DEFAULT_NEUTRAL_BINS = (-0.05, 0.05)
-DEFAULT_MIN_SUBJECTIVITY = 0.5
+DEFAULT_MIN_SENTIMENT_SCORE = 0.0
 
 API = "recent"
 QUERIES=[
@@ -92,14 +91,6 @@ def build_file_name(api, query, date, format="csv"):
     )
     return file_name
 
-def group_sentiment(df, bins=DEFAULT_NEUTRAL_BINS):
-    df["sentiment_label"] = pd.cut(
-        x=df['polarity'],
-        bins=[-1.0, *bins, 1.0],
-        labels=[SENTIMENT_LABELS[k] for k in POLARITY_LABEL_COLS]
-    )
-    return df
-
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def load_df(excel_path):
     if excel_path.endswith("csv"):
@@ -109,7 +100,7 @@ def load_df(excel_path):
     return df
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
-def prepare_df(df, sentiment_bins=DEFAULT_NEUTRAL_BINS):
+def prepare_df(df):
     df = df.copy()
     if "Unnamed: 0" in df.columns:
         df = df.drop(["Unnamed: 0"], axis=1)
@@ -122,12 +113,11 @@ def prepare_df(df, sentiment_bins=DEFAULT_NEUTRAL_BINS):
         "quote_count",
         "reply_count"
     ]].max(axis=1)
-    df = group_sentiment(df, bins=sentiment_bins)
     return df
 
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
-def load_all(sentiment_bins=DEFAULT_NEUTRAL_BINS):
+def load_all():
     all_data = {}
     for query in QUERIES:
         for date in DATES:
@@ -135,7 +125,7 @@ def load_all(sentiment_bins=DEFAULT_NEUTRAL_BINS):
             excel_path = Constants.sentiment_folder + file_name
             try:
                 df = load_df(excel_path)
-                df = prepare_df(df, sentiment_bins=sentiment_bins)
+                df = prepare_df(df)
                 all_data[(query, date)] = df
             except FileNotFoundError:
                 all_data[(query, date)] = None
@@ -146,8 +136,6 @@ st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
 def aggregate_sentiment(df):
     count_sentiment = len(df)
     volume_sentiment = df["volume"].sum()
-    mean_polarity = df["polarity"].mean()
-    volume_polarity = (df["polarity"] * df["volume"]).sum() / volume_sentiment
     sentiment_label_exists = list(df["sentiment_label"].unique())
     sentiment_label_count = df["sentiment_label"].value_counts()
     sentiment_label_volume = df[["sentiment_label", "volume"]].groupby("sentiment_label")["volume"].sum()
@@ -155,17 +143,13 @@ def aggregate_sentiment(df):
     return {
         "count_sentiment": count_sentiment,
         "volume_sentiment": volume_sentiment,
-        "mean_polarity": mean_polarity,
-        "volume_polarity": volume_polarity,
         **{
-            k: sentiment_label_count[v]
-            for k, v in SENTIMENT_LABELS.items()
-            if v in sentiment_label_exists
+            k: sentiment_label_count[k]
+            for k in sentiment_label_exists
         },
         **{
-            "{0}_volume".format(k): sentiment_label_volume[v]
-            for k, v in SENTIMENT_LABELS.items()
-            if v in sentiment_label_exists
+            "{0}_volume".format(k): sentiment_label_volume[k]
+            for k in sentiment_label_exists
         }
     }
 
@@ -176,7 +160,7 @@ SENTIMENT_COLS = [
     *["{0}_volume".format(k) for k in SENTIMENT_LABELS.keys()]
 ]
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
-def aggregate_data(all_data, min_subjectivity=DEFAULT_MIN_SUBJECTIVITY):
+def aggregate_data(all_data, min_sentiment_score=DEFAULT_MIN_SENTIMENT_SCORE):
     aggregate = []
     for query in QUERIES:
         for date in DATES:
@@ -187,10 +171,8 @@ def aggregate_data(all_data, min_subjectivity=DEFAULT_MIN_SUBJECTIVITY):
                 count_rt = count + df["retweet_count"].sum()
                 count_rt_quote = count_rt + df["quote_count"].sum()
                 engagement_1 = count + df["engagement"].sum()
-                df_sentiment = df[~df["polarity"].isna() & df["subjectivity"] >= min_subjectivity]
+                df_sentiment = df[df["sentiment_score"] >= min_sentiment_score]
                 sentiment_aggregate = aggregate_sentiment(df_sentiment)
-                df_sentiment_no_neutral = df_sentiment[df_sentiment["sentiment_label"]!=SENTIMENT_LABELS["neutral"]]
-                sentiment_aggregate_no_neutral = aggregate_sentiment(df_sentiment_no_neutral)
 
                 aggregate.append({
                     "id": build_file_name(API, query, date),
@@ -201,12 +183,7 @@ def aggregate_data(all_data, min_subjectivity=DEFAULT_MIN_SUBJECTIVITY):
                     "count_rt": count_rt,
                     "count_rt_quote": count_rt_quote,
                     "engagement_1": engagement_1,
-                    **sentiment_aggregate,
-                    **{
-                        "{0}_no_neutral".format(k): v
-                        for k, v in sentiment_aggregate_no_neutral.items()
-                        if "neutral" not in k
-                    }
+                    **sentiment_aggregate
                 })
             else:
                 aggregate.append({
