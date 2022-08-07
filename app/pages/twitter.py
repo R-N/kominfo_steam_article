@@ -264,8 +264,9 @@ def tweet_section(
 
 def app():
 
+    st.sidebar.markdown("### Opsi data/grafik agregat")
     min_sentiment_score = st.sidebar.number_input(
-        "Minimum Sentiment Confidence (untuk grafik agregat)",
+        "Minimum Sentiment Confidence",
         min_value=0.0,
         max_value=100.0,
         value=DEFAULT_MIN_SENTIMENT_SCORE,
