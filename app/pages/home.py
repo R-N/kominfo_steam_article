@@ -41,6 +41,7 @@ def app():
 
     st.title("Steam, Pintu Ekspor Terbesar Industri Game PC Indonesia yang Ditutup oleh Kominfo")
     st.write('<span class="h3">Muhammad Rizqi Nur, 2022</span>', unsafe_allow_html=True)
+    st.markdown("### [Artikel versi terbaru (BERT)](https://r-n-kominfo-steam-article-app-ys48ca.streamlitapp.com/)", unsafe_allow_html=True)
 
     col1, col2 = st.columns((1, 1))
     col1.image("assets/img/blokirkominfo.png")
@@ -53,7 +54,7 @@ def app():
         Pemblokiran ini menghebohkan media internet Indonesia dan langsung menjadi <strong>trending twitter</strong>. 
         Sebagian besar tweet masih positif, tapi jumlah <strong>tweet negatif</strong> juga sangat banyak. 
         Bagaimana tidak, setelah melalui 5 hari kerja yang panjang, orang-orang Indonesia ternyata tidak dapat refreshing dengan game yang telah dibeli; semua karena suatu regulasi baru dari pemerintah. 
-        Bukan cuma tempat membeli game, Steam juga adalah <strong>pintu ekspor terbesar industri game Indonesia</strong>. 
+        Bukan cuma tempat membeli game, Steam juga adalah <strong>pintu ekspor terbesar industri game PC Indonesia</strong>. 
         Developer Indonesia diestimasikan telah meraup sebanyak <strong>1,66 miliar</strong> rupiah, dimana <strong>1,58 miliar</strong> rupiah di antaranya berasal <strong>dari game indie</strong>. 
         Developer game indie <strong>tidak memiliki sponsor</strong> besar dalam pembuatannya, dan industri game di Indonesia sendiri terbilang kecil, tapi <strong>Steam memungkinkan mereka menjual ke seluruh dunia</strong>.
         Sepenting itu lah Steam bagi industri dan pasar game Indonesia. Untungnya, per tanggal <strong>2 Agustus 2022</strong>, akses <strong>Steam telah dibuka</strong> kembali.
