@@ -41,7 +41,7 @@ def app():
 
     st.title("Steam, Pintu Ekspor Terbesar Industri Game PC Indonesia yang Ditutup oleh Kominfo")
     st.write('<span class="h3">Muhammad Rizqi Nur, 2022</span>', unsafe_allow_html=True)
-    st.markdown("### [Artikel versi Sebelumnya (TextBlob)](https://r-n-kominfo-steam-article-app-v1-1-y6k8hj.streamlitapp.com/)", unsafe_allow_html=True)
+    st.markdown("### [Artikel versi sebelumnya (TextBlob)](https://r-n-kominfo-steam-article-app-v1-1-y6k8hj.streamlitapp.com/)", unsafe_allow_html=True)
 
     col1, col2 = st.columns((1, 1))
     col1.image("assets/img/blokirkominfo.png")
