@@ -263,7 +263,7 @@ def tweet_section(
 
 def app():
 
-    col1, col2, col3 = st.sidebar.columns(3)
+    st.sidebar.markdown("### Opsi data/grafik agregat")
     neutral_bin_min = st.sidebar.number_input(
         "Minimum Sentimen Netral",
         min_value=-1.0,
