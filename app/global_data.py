@@ -6,6 +6,7 @@ from io import BytesIO
 class Constants:
     data_folder = "data/"
     steam_path = data_folder + "steam_games_indo.xlsx"
+    steam_folder = data_folder + "steam/"
     steam_appid_path = data_folder + "steam_appids.json"
     gtrends_path = data_folder + "gtrends.xlsx"
     counts_path = data_folder + "counts_recent_2022-07-25T17_00_00Z_2022-07-31T17_00_00Z.xlsx"

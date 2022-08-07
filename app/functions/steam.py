@@ -8,6 +8,16 @@ from pandas.api.types import is_string_dtype
 from pandas.api.types import is_numeric_dtype
 import functools
 
+COUNTRIES = {
+    "bn": "Brunei",
+    "id": "Indonesia",
+    "mm": "Myanmar",
+    "my": "Malaysia",
+    "ph": "Filipina",
+    "sg": "Singapura",
+    "th": "Thailand",
+    "vn": "Vietnam"
+}
 
 CSV_COLS = [
     "categories",
@@ -46,7 +56,7 @@ def estimate_price(price, qty):
 
 def unpack_csv(df, cols):
     for col in cols:
-        df[col] = df[col].str.split(',')
+        df[col] = df[col].astype("str").str.split(',')
     return df
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
@@ -126,10 +136,18 @@ def split_languages(df):
     return df
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
-def init_df(df):
+def init_df(df, country="id"):
+    if "dlc" not in df.columns:
+        df["dlc"] = pd.Series([""]*len(df), index=df.index, name="dlc")
     df = unpack_csv(df, CSV_COLS)
     df = split_languages(df)
     df = summarize_review(df)
+    df["country"] = country
+    df["count"] = 1
     return df
 
-
+st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id})
+def merge_df(dfs):
+    merged = pd.concat(dfs)
+    #merged = merged[~merged.index.duplicated(keep='last')]
+    return merged

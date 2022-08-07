@@ -241,23 +241,25 @@ def game_estimated_revenue_section(
         key=key
     )
 
-def section_grouped_estimated_revenue(
+def grouped_estimated_revenue_section(
     container, 
     df,
-    key="steam"
-):
-
-    labels = {
+    labels={
         None: "Tanpa pengelompokan",
         "developers": "Developer",
         "publishers": "Publisher",
-    }
+    },
+    default=None,
+    key="steam"
+):
+
+    
 
     df_grouped, grouping = groupby_tag_2(
         container,
         df, 
         labels, 
-        default=None,
+        default=default,
         key=key
     )
 
@@ -277,5 +279,5 @@ def app():
     game_availability_section(st, df, df_paid, df_free, df_unavailable, df_unreleased, steam_appids)
 
     st.markdown("# Estimasi Penjualan")
-    section_grouped_estimated_revenue(st, df_paid)
+    grouped_estimated_revenue_section(st, df_paid)
 

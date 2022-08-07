@@ -1,7 +1,7 @@
 import streamlit as st
 
 from app.global_data import init
-from app.pages import home, steam, twitter, gtrends
+from app.pages import home, steam, steam_virtualsea, twitter, gtrends
 
 st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
 
@@ -49,6 +49,7 @@ init()
 # Add all your applications (pages) here
 add_page("Home", home.app)
 add_page("Steam", steam.app)
+add_page("Steam VirtualSEA", steam_virtualsea.app)
 add_page("Twitter", twitter.app)
 add_page("Google Trends", gtrends.app)
 
