@@ -100,7 +100,8 @@ def scatter_section(
     ],
     hlines=[],
     compact=False,
-    key="default"
+    key="default",
+    index=None
 ):
     con = container.container() if compact else container
     def option_section(
@@ -126,6 +127,8 @@ def scatter_section(
             x, y, zs = option_section(st, st, st)
     else:
         x, y, zs = option_section(*container.columns(2), container)
+    if index:
+        df = df.set_index(index)
     game_scatter(con, df, x, y, zs, hlines=hlines)
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})

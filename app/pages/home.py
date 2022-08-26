@@ -136,7 +136,7 @@ def app():
     
     tab_histogram, tab_scatter, tab_pie = col2.tabs(["Histogram", "Scatter Plot", "Ketersediaan Game"])
     steam_histogram_section(tab_histogram, df_paid, compact=True, key="revenue_home")
-    steam_scatter_section(tab_scatter, df_paid, compact=True, key="revenue_home")
+    steam_scatter_section(tab_scatter, df_paid, compact=True, key="revenue_home", index="name")
     
     game_availabiltiy_pie(
         tab_pie,
