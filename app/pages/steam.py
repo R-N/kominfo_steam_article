@@ -47,10 +47,10 @@ def bar_horizontal_section(
     ):
         x = selectbox_2(col1, "x", {
             x: LABELS[x] for x in x_options if x in df.columns
-        }, default=x, key=key + "2")
+        }, default=x, key=key)
         y = selectbox_2(col2, "y", {
             x: LABELS[x] for x in y_options if x in df.columns
-        }, default=y, key=key + "3")
+        }, default=y, key=key)
         agg = con1.checkbox("Agg", value=agg, key=key)
         return x, y, agg
 
@@ -117,10 +117,10 @@ def scatter_section(
         }, default=x, key=key)
         y = selectbox_2(col2, "y", {
             x: LABELS[x] for x in y_options if x in df.columns
-        }, default=y, key=key + "2")
+        }, default=y, key=key)
         zs = multiselect_2(con1, "z", {
             x: LABELS[x] for x in z_options if x in df.columns
-        }, default=zs, key=key + "3")
+        }, default=zs, key=key)
         return x, y, zs
     if compact:
         with container.expander("Opsi"):
@@ -160,8 +160,7 @@ def histogram_section(
             df, 
             col, 
             default=limit,
-            compact=compact,
-            key=key + "2"
+            compact=compact
         )
         return col, df, limit
     if compact:
