@@ -34,12 +34,12 @@ def sentiment_section(
         volume = selectbox_2(col2, "Volume", {
             "volume": "Dikali like/rt",
             "count": "Hanya jumlah"
-        }, default=volume, key=key)
+        }, default=volume, key=key + "2")
         labels = POLARITY_LABEL_VOLUME_COLS if volume=="volume" else POLARITY_LABEL_COLS
         chart = selectbox_2(col3, "Grafik", {
             "bar": "Bar chart",
             "line": "Line chart"
-        }, default=chart, key=key)
+        }, default=chart, key=key + "3")
         return query, labels, chart
 
     if compact:
@@ -206,7 +206,7 @@ def tweet_section(
                 ]
             },
             default=sorting,
-            key=key
+            key=key + "2"
         )
         limit = col4.number_input(
             "Limit",
@@ -214,7 +214,7 @@ def tweet_section(
             max_value=100,
             value=limit,
             step=1,
-            key=key
+            key=key + "3"
         )
         limit = int(limit)
         limit = max(1, min(100, limit))
@@ -225,7 +225,7 @@ def tweet_section(
             max_value=limit,
             value=show,
             step=1,
-            key=key
+            key=key + "4"
         )
         show = int(show)
         show = max(1, min(limit, show))
@@ -242,14 +242,14 @@ def tweet_section(
             "Query", 
             {k:k for k in queries}, 
             default=queries,
-            key=key
+            key=key + "5"
         )
         dates = multiselect_2(
             st, 
             "Tanggal", 
             {k:k for k in dates}, 
             default=dates,
-            key=key
+            key=key + "6"
         )
     merged = merge_data(all_data, queries, dates)
     if sentiment != "all":
