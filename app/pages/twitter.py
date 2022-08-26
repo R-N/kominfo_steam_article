@@ -83,7 +83,7 @@ def volume_section(
         chart = selectbox_2(col3, "Grafik", {
             "bar": "Bar chart",
             "line": "Line chart"
-        }, default=chart, key=key)
+        }, default=chart, key=key+"3")
         return query, count, chart
 
     if compact:
