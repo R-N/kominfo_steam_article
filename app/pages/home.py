@@ -307,6 +307,12 @@ def app():
     st.markdown("# Eksplorasi")
     st.markdown("Ada yang ingin kalian ketahui lebih lanjut? Merasa ada yang saya lewatkan? Ingin lihat grafik dengan ukuran lebih besar? Coba klik tombol di pojok kiri atas.")
 
+    st.markdown("# Tutorial")
+    st.markdown("Ingin belajar membuat sesuatu seperti ini? Saya menulis beberapa artikel panduan di Medium.")
+    col1, col2 = st.columns(2)
+    col1.markdown("- [Analisis Sentimen Twitter Berbahasa Indonesia Menggunakan Pretrained Neural Network Transformer (BERT)](https://medium.com/@rizqinur2010/analisis-sentimen-twitter-berbahasa-indonesia-menggunakan-pretrained-neural-network-transformer-d4de29f64ebe)")
+    col2.markdown("- [Scraping Ringkasan Review Keseluruhan dan Detail Game Steam dari Steam Curator List](https://medium.com/@rizqinur2010/scraping-ringkasan-review-keseluruhan-dan-detail-game-steam-dari-steam-curator-list-a7b5b3834e48)")
+
     st.markdown("# Referensi")
     col2, col1 = st.columns(2)
     col1.markdown("- [IndoBERT Sentiment](https://huggingface.co/mdhugol/indonesia-bert-sentiment-classification)")
