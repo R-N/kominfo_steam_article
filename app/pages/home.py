@@ -270,7 +270,8 @@ def app():
             "Mean": df_paid.mean()
         },
         compact=True,
-        key="bad_home"
+        key="bad_home",
+        index="name"
     )
     col1.markdown("## Sekarang, kabar buruknya", unsafe_allow_html=True)
     col1.markdown('''
