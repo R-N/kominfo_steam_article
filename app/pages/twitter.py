@@ -166,7 +166,8 @@ def tweet_section(
     sorting="engagement", 
     limit=10, 
     show=1,
-    compact=False
+    compact=False,
+    key="tweet"
 ):
     con = container.container() if compact else container
     def option_section(
@@ -188,7 +189,8 @@ def tweet_section(
                     "all"
                 ]
             },
-            default=sentiment
+            default=sentiment,
+            key=key
         )
         sorting = selectbox_2(
             col3,
@@ -203,14 +205,16 @@ def tweet_section(
                     "engagement"
                 ]
             },
-            default=sorting
+            default=sorting,
+            key=key
         )
         limit = col4.number_input(
             "Limit",
             min_value=1,
             max_value=100,
             value=limit,
-            step=1
+            step=1,
+            key=key
         )
         limit = int(limit)
         limit = max(1, min(100, limit))
@@ -220,7 +224,8 @@ def tweet_section(
             min_value=1,
             max_value=limit,
             value=show,
-            step=1
+            step=1,
+            key=key
         )
         show = int(show)
         show = max(1, min(limit, show))
@@ -236,13 +241,15 @@ def tweet_section(
             st, 
             "Query", 
             {k:k for k in queries}, 
-            default=queries
+            default=queries,
+            key=key
         )
         dates = multiselect_2(
             st, 
             "Tanggal", 
             {k:k for k in dates}, 
-            default=dates
+            default=dates,
+            key=key
         )
     merged = merge_data(all_data, queries, dates)
     if sentiment != "all":

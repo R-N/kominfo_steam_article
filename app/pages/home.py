@@ -96,11 +96,11 @@ def app():
     ''', unsafe_allow_html=True)
 
     tab_volume, tab_sentiment, tab_gtrends = col2.tabs(["Volume", "Sentimen", "Google Trends"])
-    tweet_volume_section(tab_volume, aggregate, compact=True)
-    tweet_sentiment_section(tab_sentiment, aggregate, compact=True)
-    gtrends_section(tab_gtrends)
+    tweet_volume_section(tab_volume, aggregate, compact=True, key="volume_home")
+    tweet_sentiment_section(tab_sentiment, aggregate, compact=True, key="sentiment_home")
+    gtrends_section(tab_gtrends, key="trends_home")
 
-    tweet_section(st, all_data, compact=True)
+    tweet_section(st, all_data, compact=True, key="tweet_home")
 
     st.markdown("# Steam dan GameDev Indonesia")
 
@@ -135,8 +135,8 @@ def app():
     col2, col1 = st.columns((1, 1))
     
     tab_histogram, tab_scatter, tab_pie = col2.tabs(["Histogram", "Scatter Plot", "Ketersediaan Game"])
-    steam_histogram_section(tab_histogram, df_paid, compact=True, key="revenue")
-    steam_scatter_section(tab_scatter, df_paid, compact=True, key="revenue")
+    steam_histogram_section(tab_histogram, df_paid, compact=True, key="revenue_home")
+    steam_scatter_section(tab_scatter, df_paid, compact=True, key="revenue_home")
     
     game_availabiltiy_pie(
         tab_pie,
@@ -172,21 +172,21 @@ def app():
         df_paid, 
         y="genres", 
         compact=True,
-        key="genres"
+        key="genres_home"
     )
     steam_bar_horizontal_section(
         tab_category, 
         df_paid, 
         y="categories", 
         compact=True,
-        key="categories"
+        key="categories_home"
     )
     steam_bar_horizontal_section(
         tab_platform, 
         df_paid, 
         y="platforms", 
         compact=True,
-        key="platforms"
+        key="platforms_home"
     )
     col1.markdown("## Adventure adalah genre terfavorit")
     col1.markdown('''
@@ -213,14 +213,14 @@ def app():
         df_paid, 
         y="supported_languages", 
         compact=True,
-        key="lang"
+        key="lang_home"
     )
     steam_bar_horizontal_section(
         tab_voice, 
         df_paid, 
         y="supported_languages_voice", 
         compact=True,
-        key="voice"
+        key="voice_home"
     )
     col1.markdown("## Bahasa Inggris. Bahasa Indonesia?")
     col1.markdown('''
@@ -258,7 +258,7 @@ def app():
         df_paid, 
         limit=10 * 10**6,
         compact=True, 
-        key="bad"
+        key="bad_home"
     )
     steam_scatter_section(
         tab_scatter,
@@ -270,7 +270,7 @@ def app():
             "Mean": df_paid.mean()
         },
         compact=True,
-        key="bad"
+        key="bad_home"
     )
     col1.markdown("## Sekarang, kabar buruknya", unsafe_allow_html=True)
     col1.markdown('''
