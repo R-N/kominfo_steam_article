@@ -79,7 +79,7 @@ def volume_section(
             "count": "Hanya tweet original",
             "count_rt": "Tweet + Retweet",
             "count_rt_quote": "Tweet + Retweet + Quote"
-        }, default=count, key=key)
+        }, default=count, key=key+"2")
         chart = selectbox_2(col3, "Grafik", {
             "bar": "Bar chart",
             "line": "Line chart"
