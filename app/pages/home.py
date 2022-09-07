@@ -62,6 +62,8 @@ def app():
     ''', unsafe_allow_html=True)
 
     col1, col2 = st.columns((1, 1))
+    col1.markdown("### Sentimen Tweet")
+    col2.markdown("### Estimasi Penjualan")
     tweet_sentiment_section(col1, aggregate, compact=True, key="sentiment_lead")
     steam_bar_horizontal_section(
         col2, 
@@ -213,13 +215,13 @@ def app():
     col1.markdown("## Adventure adalah genre terfavorit")
     col1.markdown('''
     <p class="text-justify">
-        Game Indonesia di Steam didominasi oleh <strong>genre adventure, casual, dan action</strong>, tapi kalau <strong>dilihat dari popularitas, genre adventure jauh meninggalkan yang lain</strong>.
+        Game Indonesia di Steam didominasi oleh <strong>genre adventure, casual, dan action</strong>, tapi kalau dilihat dari popularitas, genre adventure jauh meninggalkan yang lain. Ini dapat berarti genre <strong>adventure adalah genre paling populer</strong> di kalangan player game Indonesia.
     </p>
     ''', unsafe_allow_html=True)
     col1.markdown("## Hampir semuanya single-player")
     col1.markdown('''
     <p class="text-justify">
-        Sebagian besar game Indonesia merupakan game <strong>single-player</strong> dengan fitur <strong>steam achievement, steam cloud, dan steam trading cards</strong>. 
+        Sebagian besar game Indonesia merupakan game <strong>single-player</strong> dengan fitur <strong>steam achievement, steam cloud, dan steam trading cards</strong>, begitu pula untuk game populer.
     </p>
     ''', unsafe_allow_html=True)
     col1.markdown("## Windows.")
@@ -247,13 +249,13 @@ def app():
     col1.markdown("## Bahasa Inggris. Bahasa Indonesia?")
     col1.markdown('''
     <p class="text-justify">
-        <strong>Semua</strong> game Indonesia mendukung bahasa <strong>Inggris</strong>, tapi game-game populer juga mendukung bahasa lain seperti bahasa <strong>Cina, Jepang, Spanyol, Rusia, Jerman, Portugis-Brazil, Prancis hingga Korea</strong>. Sayangnya, di Steam <strong>tidak ada tag Bahasa Indonesia</strong>, jadi kita tidak bisa mencari game berbahasa Indonesia melalui tag.
+        <strong>Semua</strong> game Indonesia mendukung bahasa <strong>Inggris</strong>, tapi game-game populer juga mendukung bahasa lain seperti bahasa <strong>Cina, Jepang, Spanyol, Rusia, Jerman, Portugis-Brazil, Prancis hingga Korea</strong>. Ini dapat berarti <strong>dukungan beragam bahasa penting untuk kesuksesan</strong> game. Sayangnya, di Steam <strong>tidak ada tag Bahasa Indonesia</strong>, jadi kita tidak bisa mencari game berbahasa Indonesia melalui tag.
     </p>
     ''', unsafe_allow_html=True)
     col1.markdown("## Sebagian besar tanpa <i>voice</i>", unsafe_allow_html=True)
     col1.markdown('''
     <p class="text-justify">
-        Sebagian besar game Indonesia tidak mendukung voice, tapi dari yang mendukung voice, <strong>Bahasa Inggris paling banyak</strong>.
+        Sebagian besar game Indonesia tidak mendukung voice, tapi dari yang mendukung voice, <strong>Bahasa Inggris paling banyak dan populer</strong>.
     </p>
     ''', unsafe_allow_html=True)
 
@@ -304,7 +306,7 @@ def app():
     col1.markdown("## Hanya 23 game yang sukses", unsafe_allow_html=True)
     col1.markdown('''
     <p class="text-justify">
-        <strong>Sebanyak 109 dari 132 game</strong> diestimasikan hanya berhasil <strong>menjual di bawah 10 juta rupiah</strong>. Padahal, waktu, tenaga, dan uang yang diperlukan untuk mengembangkan game cukup besar, sedangkan <strong>developer indie sulit mencari dana</strong>. Industri yang sudah sulit ini akan jadi jauh lebih sulit lagi jika Steam benar-benar diblokir.
+        <strong>Sebanyak 109 dari 132 game</strong> diestimasikan hanya berhasil <strong>menjual di bawah 10 juta rupiah</strong>. Padahal, waktu, tenaga, dan uang yang diperlukan untuk mengembangkan game cukup besar, sedangkan <strong>developer indie sulit mencari dana</strong>. Industri yang sudah sulit ini akan jadi jauh <strong>lebih sulit lagi jika Steam benar-benar diblokir</strong>.
     </p>
     ''', unsafe_allow_html=True)
 

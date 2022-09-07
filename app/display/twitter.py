@@ -12,7 +12,7 @@ def tweet_volume_bar_stack(container, df, y, labels={}):
     fig = px.bar(
         df,  
         y=y,
-        labels={"value": "Volume", **LABELS, **labels},
+        labels={"value": "Volume Tweet", **LABELS, **labels},
         color_discrete_map={
             'positive_volume': '#2962FF',
             'positive': '#2962FF',
