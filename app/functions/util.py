@@ -24,6 +24,7 @@ def join_tag(df, col, include_na=True):
 def groupby_tag(df, col, include_na=True):
     if col is None:
         return df
+    #df.reset_index(level=0, inplace=True)
     return join_tag(df, col, include_na=include_na).groupby(col)
 
 def group_others(others, others_name="Others", list_cols=[]):

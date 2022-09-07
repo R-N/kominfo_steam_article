@@ -61,6 +61,18 @@ def app():
     </p>
     ''', unsafe_allow_html=True)
 
+    col1, col2 = st.columns((1, 1))
+    tweet_sentiment_section(col1, aggregate, compact=True, key="sentiment_lead")
+    steam_bar_horizontal_section(
+        col2, 
+        df_paid, 
+        x="estimated_revenue_positive",
+        y="genres", 
+        compact=True,
+        key="indie_lead",
+        agg_val=True
+    )
+
     st.markdown("## Sudah dari seminggu, dua minggu, setahun, dan dua tahun sebelumnya")
     st.container().markdown('''
     <p class="text-justify">
@@ -134,7 +146,17 @@ def app():
 
     col2, col1 = st.columns((1, 1))
     
-    tab_histogram, tab_scatter, tab_pie = col2.tabs(["Histogram", "Scatter Plot", "Ketersediaan Game"])
+    tab_indie, tab_scatter, tab_histogram, tab_pie = col2.tabs(["Indie", "Scatter Plot", "Histogram", "Ketersediaan Game"])
+    
+    steam_bar_horizontal_section(
+        tab_indie, 
+        df_paid, 
+        x="estimated_revenue_positive",
+        y="genres", 
+        compact=True,
+        key="indie_home",
+        agg_val=True
+    )
     steam_histogram_section(tab_histogram, df_paid, compact=True, key="revenue_home")
     steam_scatter_section(tab_scatter, df_paid, compact=True, key="revenue_home", index="name")
     

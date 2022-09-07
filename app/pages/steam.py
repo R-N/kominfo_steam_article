@@ -36,13 +36,17 @@ def bar_horizontal_section(
         "supported_languages_voice"
     ],
     compact=False,
+    agg_val=True,
+    agg_name="All",
     key="default"
 ):
+    agg_val = agg and agg_val
     con = container.container() if compact else container
     def option_section(
         col1, col2, con1,
         x=x, y=y, agg=agg,
         x_options=x_options, y_options=y_options,
+        agg_val=agg_val, agg_name=agg_name,
         df=df, key=key
     ):
         x = selectbox_2(col1, "x", {
@@ -51,17 +55,21 @@ def bar_horizontal_section(
         y = selectbox_2(col2, "y", {
             x: LABELS[x] for x in y_options if x in df.columns
         }, default=y, key=key)
-        agg = con1.checkbox("Agg", value=agg, key=key)
-        return x, y, agg
+        agg = col1.checkbox("Agg", value=agg, key=key)
+        if agg:
+            agg_val = col2.checkbox(agg_name, value=agg_val and agg, key=key, disabled=not agg)
+        return x, y, agg, agg_val
 
     if compact:
         with container.expander("Opsi"):
-            x, y, agg = option_section(st, st ,st)
+            x, y, agg, agg_val = option_section(st, st ,st)
     else:
-        x, y, agg = option_section(*container.columns(2), container)
+        x, y, agg, agg_val = option_section(*container.columns(2), container)
+    agg_val = agg and agg_val
     game_bar_horizontal(
         con, df, x, y, 
-        agg=agg
+        agg=agg,
+        agg_val=agg_val, agg_name=agg_name
     )
 
 st.cache(hash_funcs={list: id, dict: id, pd.DataFrame: id, Constants.container_type: id})

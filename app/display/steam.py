@@ -81,21 +81,25 @@ def game_scatter(container, df, x, y, zs, hlines=[], labels={}):
         for z in zs
     ]
     labels = {**LABELS, **labels}
+    labels = {**LABELS, **labels}
+    labels={
+        "x": labels[x],
+        "y": labels[y],
+        **{
+            "hover_data_{0}".format(i): labels[zs[i].name]
+            for i in range(len(zs))
+        },
+        **labels
+    }
+    if x in labels:
+        labels = {**labels, "index": labels[x]}
     fig = px.scatter(
         x=df[x],
         y=df[y],
         hover_name=df.index,
         hover_data=zs,
         #color=df["release_date"],
-        labels={
-            "x": labels[x],
-            "y": labels[y],
-            **{
-                "hover_data_{0}".format(i): labels[zs[i].name]
-                for i in range(len(zs))
-            },
-            **labels
-        }
+        labels=labels
     )
     fig_defaults(fig)
     if isinstance(hlines, list):
@@ -141,16 +145,30 @@ def game_pie(container, df, col, threshold=0.01, others_name="Others", labels={}
     fig_defaults(fig)
     container.plotly_chart(fig, use_container_width=True)
 
-def game_bar_horizontal(container, df, x, y, y_list=True, hover_data=[], aggfunc=lambda x: x.sum(), labels={}, agg=False):
+def game_bar_horizontal(
+    container, df, 
+    x, y, 
+    y_list=True,
+    hover_data=[], 
+    aggfunc=lambda x: x.sum(), 
+    labels={}, 
+    agg=False,
+    agg_val=False,
+    agg_name="All"
+):
     y_list = y_list and y is not None
+    if agg_val:
+        agg_val_val = aggfunc(df)
+        agg_val_val[y] = agg_name
     if y_list:
         if agg:
             df = aggfunc(groupby_tag(
                 df,
                 y
             )).sort_values(x, ascending=True)
+            df[y] = df.index
             sorting = df
-            y = None
+            #y = None
         else:
             df = join_tag(
                 df,
@@ -162,6 +180,14 @@ def game_bar_horizontal(container, df, x, y, y_list=True, hover_data=[], aggfunc
     else:
         sorting = df
     sorting = sorting.sort_values(x, ascending=True)
+    if agg_val:
+        df = pd.concat([
+            df,
+            pd.DataFrame([agg_val_val], index=[agg_name])[df.columns]
+        ])
+    labels = {**LABELS, **labels}
+    #if y in labels:
+    #    labels = {**labels, "index": labels[y]}
     fig = px.bar(
         df, 
         x=x, 
@@ -170,7 +196,7 @@ def game_bar_horizontal(container, df, x, y, y_list=True, hover_data=[], aggfunc
         orientation='h',
         hover_data=[x] if not agg else [x, *hover_data],
         category_orders=sorting.index.to_list(),
-        labels={**LABELS, **labels}
+        labels=labels
     )
     fig_defaults(fig)
     container.plotly_chart(fig, use_container_width=True)
