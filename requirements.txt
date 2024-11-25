@@ -4,3 +4,4 @@ plotly
 numerize
 pandas
 requests
+altair<5
