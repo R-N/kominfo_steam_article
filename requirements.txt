@@ -2,6 +2,6 @@ streamlit==1.11.0
 openpyxl
 plotly
 numerize
-pandas
+pandas==1.4.3
 requests
 altair<5
