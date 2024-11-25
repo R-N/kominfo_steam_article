@@ -3,5 +3,6 @@ openpyxl
 plotly
 numerize
 pandas==1.4.3
+numpy==1.23.1
 requests
 altair<5
